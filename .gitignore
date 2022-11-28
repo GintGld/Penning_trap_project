@@ -1,5 +1,3 @@
-matplotplusplus/
 bin/
 build/
 Makefile
-test_file_vector3d.cpp
