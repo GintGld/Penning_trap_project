@@ -4,7 +4,7 @@
 #include <cmath>
 
 template<typename T>
-class vector3d
+class vector3d final
 {
 protected:
     T* data;
