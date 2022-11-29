@@ -1,12 +1,12 @@
-#ifndef __VECTOR3D__
-#define __VECTOR3D__
+#ifndef VECTOR3D_H
+#define VECTOR3D_H
 #include <string>
 #include <cmath>
 
 template<typename T>
-class vector3d final
+class vector3d
 {
-private:
+protected:
     T* data;
 public:
     // Constructors
@@ -54,6 +54,9 @@ public:
     friend std::string to_str(const vector3d<T_for_string>& v);
 };
 
+#define vector_f vector3d<float>
+#define vector_d vector3d<double>
+
 /*
     Constructors
 */
@@ -76,7 +79,8 @@ vector3d<T>::vector3d(T* arr):
     RAII
 */
 template<typename T>
-vector3d<T>::vector3d(const vector3d<T>& lhs): data(new T[3])
+vector3d<T>::vector3d(const vector3d<T>& lhs):
+    data(new T[3])
 {
     data[0] = lhs.data[0];
     data[1] = lhs.data[1];
@@ -92,7 +96,8 @@ vector3d<T>& vector3d<T>::operator=(const vector3d& lhs)
     return *this;
 }
 template<typename T>
-vector3d<T>::vector3d(vector3d<T>&& rhs): data(rhs.data)
+vector3d<T>::vector3d(vector3d<T>&& rhs):
+    data(rhs.data)
 {
     rhs.data = nullptr;
 }
@@ -266,4 +271,4 @@ std::string to_str(const vector3d<T>& v)
     return "(" + std::to_string(v.data[0]) + ", " + std::to_string(v.data[1]) + ", " + std::to_string(v.data[2]) + ")"; 
 }
 
-#endif
+#endif // VECTOR3D_H
