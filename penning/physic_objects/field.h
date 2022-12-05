@@ -4,21 +4,32 @@
 #include "vector3d.h"
 
 template<typename T>
-struct field
+struct field final
 {
 private:
     // Function that defines vector field
     vector3d<T> (*f)(vector3d<T>);
 
+    // constructor
+    field(vector<T> (*f)(vector<T>) = [](vector3d<T> r)(return vector3d<T>(0,0,0);));
+
 public:
-    // default constructor, defines function as 0
-    field();
-    field(vector<T> (*f)(vector<T>));
-
     // changes function
-    void set(vector<T> (*f)(vector<T>));
-
+    void set_function(vector<T> (*f)(vector<T>));
+    
     vector3d<T> operator()(vector3d<T> r);
+
+    friend template<typename T>
+    field<T> new_penning_1d();
+
+    friend template<typename T>
+    field<T> new_penning_2d();
+
+    friend template<typename T>
+    field<T> new_penning_3d();
+
+    friend template<typename T>
+    field<T> new_field(vector3d<T> (*f)(vector3d<T>) = [](vector3d<T> r)(return vector3d<T>(0,0,0);));
 };
 
 /*
@@ -26,5 +37,17 @@ public:
     OR
     Functions that construct these fields
 */
+
+template<typename T>
+field<T> new_penning_1d();
+
+template<typename T>
+field<T> new_penning_2d();
+
+template<typename T>
+field<T> new_penning_3d();
+
+template<typename T>
+field<T> new_field(vector3d<T> (*f)(vector3d<T>) = [](vector3d<T> r)(return vector3d<T>(0,0,0);));
 
 #endif // FIELD_H
