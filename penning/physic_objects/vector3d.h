@@ -3,6 +3,10 @@
 #include <string>
 #include <cmath>
 
+////////////////////////////////////////
+//            Declaration             //
+////////////////////////////////////////
+
 template<typename T>
 class vector3d final
 {
@@ -11,7 +15,7 @@ protected:
 public:
     // Constructors
     vector3d();
-    vector3d(const T& x,const T& y,const T& z);
+    vector3d(const T& x, const T& y, const T& z);
     vector3d(T* arr);
 
     // RAII
@@ -22,20 +26,20 @@ public:
     ~vector3d();
 
     // Binary operators
-    bool      operator==(const vector3d& other);
-    bool      operator!=(const vector3d& other);
-    vector3d& operator+ (const vector3d& other);
-    vector3d& operator- (const vector3d& other);
-    T&        operator* (const vector3d& other);
-    vector3d& operator^ (const vector3d& other);
-    vector3d& operator* (const T& mult);
+    bool      operator==(const vector3d& other) const;
+    bool      operator!=(const vector3d& other) const;
+    vector3d& operator+ (const vector3d& other) const;
+    vector3d& operator- (const vector3d& other) const;
+    T&        operator* (const vector3d& other) const;
+    vector3d& operator^ (const vector3d& other) const;
+    vector3d& operator* (const T& mult) const;
 
     // Unary operators
     vector3d& operator+=(const vector3d& other);
     vector3d& operator-=(const vector3d& other);
     vector3d& operator*=(const T& mult);
     vector3d& operator^=(const vector3d& other);
-    vector3d& operator- ();
+    vector3d& operator- () const;
 
     // Methods
     T& x();
@@ -44,7 +48,7 @@ public:
     T  x() const;
     T  y() const;
     T  z() const;
-    T  len();
+    T  len() const;
     void print();
     template<typename T_for_ostream>
     friend std::ostream & operator << (std::ostream& os, const vector3d<T_for_ostream>& v);
@@ -57,9 +61,13 @@ public:
 #define vector_f vector3d<float>
 #define vector_d vector3d<double>
 
-/*
-    Constructors
-*/
+////////////////////////////////////////
+//             Definition             //
+////////////////////////////////////////
+
+////////////////////////////////////////
+//            Constructors            //
+////////////////////////////////////////
 template<typename T>
 vector3d<T>::vector3d():
     data(new T[3]) {}
@@ -75,9 +83,9 @@ template<typename T>
 vector3d<T>::vector3d(T* arr):
     data(arr) {}
 
-/*
-    RAII
-*/
+////////////////////////////////////////
+//                RAII                //
+////////////////////////////////////////
 template<typename T>
 vector3d<T>::vector3d(const vector3d<T>& lhs):
     data(new T[3])
@@ -114,11 +122,11 @@ vector3d<T>::~vector3d()
     delete[] data;
 }
 
-/*
-    Binary Operators
-*/
+////////////////////////////////////////
+//          Binary Operators          //
+////////////////////////////////////////
 template<typename T>
-bool vector3d<T>::operator==(const vector3d<T>& other)
+bool vector3d<T>::operator==(const vector3d<T>& other) const
 {
     bool f = 1;
     f &= (data[0] == other.data[0]);
@@ -127,31 +135,31 @@ bool vector3d<T>::operator==(const vector3d<T>& other)
     return f;
 }
 template<typename T>
-bool vector3d<T>::operator!=(const vector3d<T>& other)
+bool vector3d<T>::operator!=(const vector3d<T>& other) const
 {
     return !(this->operator==(other));
 }
 template<typename T>
-vector3d<T>& vector3d<T>::operator+(const vector3d<T>& other)
+vector3d<T>& vector3d<T>::operator+(const vector3d<T>& other) const
 {
     vector3d<T>* tmp = new vector3d<T>(data[0]+other.data[0], data[1]+other.data[1], data[2]+other.data[2]);
     return *tmp;
 }
 template<typename T>
-vector3d<T>& vector3d<T>::operator-(const vector3d<T>& other)
+vector3d<T>& vector3d<T>::operator-(const vector3d<T>& other) const
 {
     vector3d<T>* tmp = new vector3d<T>(data[0]-other.data[0], data[1]-other.data[1], data[2]-other.data[2]);
     return *tmp;
 }
 template<typename T>
-T& vector3d<T>::operator*(const vector3d<T>& other)
+T& vector3d<T>::operator*(const vector3d<T>& other) const
 {
     T* res = new T;
     *res = data[0] * other.data[0] + data[1] * other.data[1] + data[2] * other.data[2];
     return *res;
 }
 template<typename T>
-vector3d<T>& vector3d<T>::operator^(const vector3d<T>& other)
+vector3d<T>& vector3d<T>::operator^(const vector3d<T>& other) const
 {
     vector3d<T>* tmp = new vector3d<T>;
     tmp->data[0] = data[1] * other.data[2] - data[2] * other.data[1];
@@ -160,7 +168,7 @@ vector3d<T>& vector3d<T>::operator^(const vector3d<T>& other)
     return *tmp;
 }
 template<typename T>
-vector3d<T>& vector3d<T>::operator*(const T& mult)
+vector3d<T>& vector3d<T>::operator*(const T& mult) const
 {
     vector3d<T>* tmp = new vector3d<T>(data[0] * mult, data[1] * mult, data[2] * mult);
     return *tmp;
@@ -172,9 +180,9 @@ vector3d<T2>& operator*(const T1& m, const vector3d<T2>& v)
     return *tmp;
 }
 
-/*
-    Unary Operators
-*/
+////////////////////////////////////////
+//           Unary operators          //
+////////////////////////////////////////
 template<typename T>
 vector3d<T>& vector3d<T>::operator +=(const vector3d& other)
 {
@@ -210,15 +218,15 @@ vector3d<T>& vector3d<T>::operator ^=(const vector3d& other)
     return *this;
 }
 template<typename T>
-vector3d<T>& vector3d<T>::operator -()
+vector3d<T>& vector3d<T>::operator -() const
 {
     vector3d<T>* tmp = new vector3d<T>(-data[0], -data[1], -data[2]);
     return *tmp;
 }
 
-/*
-    Methods
-*/
+////////////////////////////////////////
+//              Methods               //
+////////////////////////////////////////
 template<typename T>
 T& vector3d<T>::x()
 {
@@ -250,7 +258,7 @@ T vector3d<T>::z() const
     return data[2];
 }
 template<typename T>
-T vector3d<T>::len()
+T vector3d<T>::len() const
 {
     return sqrt(this->operator*(*this));
 }
