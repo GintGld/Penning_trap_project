@@ -33,11 +33,13 @@ public:
     T&        operator* (const vector3d& other) const;
     vector3d& operator^ (const vector3d& other) const;
     vector3d& operator* (const T& mult) const;
+    vector3d& operator/ (const T& mult) const;
 
     // Unary operators
     vector3d& operator+=(const vector3d& other);
     vector3d& operator-=(const vector3d& other);
     vector3d& operator*=(const T& mult);
+    vector3d& operator/=(const T& mult);
     vector3d& operator^=(const vector3d& other);
     vector3d& operator- () const;
 
@@ -179,6 +181,12 @@ vector3d<T2>& operator*(const T1& m, const vector3d<T2>& v)
     vector3d<T2>* tmp = new vector3d<T2>(v.x() * m, v.y() * m, v.z() * m);
     return *tmp;
 }
+template<typename T>
+vector3d<T>& vector3d<T>::operator/(const T& d) const
+{
+    vector3d<T>* tmp = new vector3d<T>(this->x()/d, this->y()/d, this->z()/d);
+    return *tmp;
+}
 
 ////////////////////////////////////////
 //           Unary operators          //
@@ -205,6 +213,14 @@ vector3d<T>& vector3d<T>::operator *=(const T& mult)
     data[0] *= mult;
     data[1] *= mult;
     data[2] *= mult;
+    return *this;
+}
+template<typename T>
+vector3d<T>& vector3d<T>::operator/=(const T& mult)
+{
+    data[0] /= mult;
+    data[1] /= mult;
+    data[2] /= mult;
     return *this;
 }
 template<typename T>
