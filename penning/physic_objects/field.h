@@ -20,10 +20,13 @@ private:
     field(std::function<vector3d<T>(vector3d<T>)> f);
 
 public:
+
+    // Methods
     void set_function(std::function<vector3d<T>(vector3d<T>)> f_new);
 
     vector3d<T> operator()(vector3d<T> r) const;
 
+    // Binary Operators
     field<T> operator=(const field<T> f);
     field<T> operator+(const field<T> f) const;
     field<T> operator-(const field<T> f) const;
@@ -32,6 +35,7 @@ public:
     std::function<T(vector3d<T>)>
     operator*(const vector3d<T> v) const;
     field<T> operator*(const T d) const;
+    field<T> operator/(const T d) const;
     field<T> operator^(const field<T> f) const;
     field<T> operator^(const vector3d<T> v) const;
 
@@ -45,6 +49,14 @@ public:
     template <typename T_mult>
     friend field<T_mult> operator^(const vector3d<T_mult> d, const field<T_mult> f);
 
+    // Unary Operators
+    field<T> operator+=(const field<T> f);
+    field<T> operator-=(const field<T> f);
+    field<T> operator^=(const field<T> f);
+    field<T> operator*=(const T mult);
+    field<T> operator/=(const T mult);
+
+    // Function for constructing a field
     template <typename T_cust>
     friend field<T_cust> new_field(std::function<vector3d<T_cust>(vector3d<T_cust>)> f);
 };
@@ -53,8 +65,16 @@ public:
 //             Definition             //
 ////////////////////////////////////////
 
+////////////////////////////////////////
+//            Constructor             //
+////////////////////////////////////////
+
 template <typename T>
 field<T>::field(std::function<vector3d<T>(vector3d<T>)> f) : f(f) {}
+
+////////////////////////////////////////
+//              Methods               //
+////////////////////////////////////////
 
 template <typename T>
 void field<T>::set_function(std::function<vector3d<T>(vector3d<T>)> f_new)
@@ -68,6 +88,10 @@ vector3d<T> field<T>::operator()(vector3d<T> r) const
 {
     return f(r);
 }
+
+////////////////////////////////////////
+//          Binary Operators          //
+////////////////////////////////////////
 
 template <typename T>
 field<T> field<T>::operator=(const field<T> f)
@@ -139,6 +163,15 @@ field<T> operator*(const T d, const field<T> f)
     return tmp;
 }
 
+template<typename T>
+field<T> field<T>::operator/(const T d) const
+{
+    field<T> tmp([&, d](vector3d<T> r){
+        return this->operator()(r) / d;
+    });
+    return tmp;
+}
+
 template <typename T>
 field<T> field<T>::operator^(const field<T> f) const
 {
@@ -165,6 +198,65 @@ field<T> operator^(const vector3d<T> v, const field<T> f)
     });
     return tmp;
 }
+
+////////////////////////////////////////
+//          Unary Operators           //
+////////////////////////////////////////
+
+template <typename T>
+field<T> field<T>::operator+=(const field<T> f)
+{
+    std::function<vector3d<T>(vector3d<T>)> tmp = this->f;
+    this->set_function([tmp, f](vector3d<T> r){
+        tmp(r) + f.operator()(r);
+    });
+    return *this;
+}
+
+template <typename T>
+field<T> field<T>::operator-=(const field<T> f)
+{
+    std::function<vector3d<T>(vector3d<T>)> tmp = this->f;
+    this->set_function([tmp, f](vector3d<T> r){
+        tmp(r) - f.operator()(r);
+    });
+    return *this;
+}
+
+template <typename T>
+field<T> field<T>::operator^=(const field<T> f)
+{
+    std::function<vector3d<T>(vector3d<T>)> tmp = this->f;
+    this->set_function([tmp, f](vector3d<T> r){
+        tmp(r) ^ f.operator()(r);
+    });
+    return *this;
+}
+
+template <typename T>
+field<T> field<T>::operator*=(const T mult)
+{
+    std::function<vector3d<T>(vector3d<T>)> tmp = this->f;
+    this->set_function([tmp, f](vector3d<T> r){
+        tmp(r) * mult;
+    });
+    return *this;
+}
+
+template <typename T>
+field<T> field<T>::operator/=(const T mult)
+{
+    std::function<vector3d<T>(vector3d<T>)> tmp = this->f;
+    this->set_function([tmp, f](vector3d<T> r){
+        tmp(r) / mult;
+    });
+    return *this;
+}
+
+////////////////////////////////////////
+//      Functions that construct      //
+//            new fields              //
+////////////////////////////////////////
 
 template <typename T>
 field<T> new_field(std::function<vector3d<T>(vector3d<T>)> f)
