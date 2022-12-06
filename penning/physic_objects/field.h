@@ -22,7 +22,25 @@ private:
 public:
     void set_function(std::function<vector3d<T>(vector3d<T>)> f_new);
 
-    vector3d<T> operator()(vector3d<T> r);
+    vector3d<T> operator()(vector3d<T> r) const;
+
+    field<T> operator=(const field<T> f);
+    field<T> operator+(const field<T> f) const;
+    field<T> operator-(const field<T> f) const;
+    field<T> operator*(const field<T> f) const;
+    field<T> operator*(const vector3d<T> v) const;
+    field<T> operator*(const T d) const;
+    field<T> operator^(const field<T> f) const;
+    field<T> operator^(const vector3d<T> v) const;
+
+    template<typename T_mult>
+    friend field<T_mult> operator*(const T_mult d, const field<T_mult> f);
+
+    template<typename T_mult>
+    friend field<T_mult> operator*(const vector3d<T_mult> v, const field<T_mult> f);
+
+    template<typename T_mult>
+    friend field<T_mult> operator^(const vector3d<T_mult> d, const field<T_mult> f);
 
     template<typename T_cust>
     friend field<T_cust> new_field(std::function<vector3d<T_cust>(vector3d<T_cust>)> f);
@@ -44,9 +62,106 @@ void field<T>::set_function(std::function<vector3d<T>(vector3d<T>)> f_new)
 }
 
 template<typename T>
-vector3d<T> field<T>::operator()(vector3d<T> r)
+vector3d<T> field<T>::operator()(vector3d<T> r) const
 {
     return f(r);
+}
+
+template<typename T>
+field<T> field<T>::operator=(const field<T> f)
+{
+    this->f = f.f;
+    return *this;
+}
+
+template<typename T>
+field<T> field<T>::operator+(const field<T> f) const
+{
+    field<T> tmp([&, f](vector3d<T> r){
+        return this->f(r) +
+        f.operator()(r);
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> field<T>::operator-(const field<T> f) const
+{
+    field<T> tmp([&, f](const vector3d<T> r){
+        return this->f(r) -
+        f.operator()(r);
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> field<T>::operator*(const field<T> f) const
+{
+    return [&, f](vector3d<T> r){
+        return this->operator()(r) * f.operator()(r);
+    };
+}
+
+template<typename T>
+field<T> field<T>::operator*(const vector3d<T> v) const
+{
+    return [&, v](vector3d<T> r){
+        return this->operator()(r) * r;
+    };
+}
+
+template<typename T>
+field<T> operator*(const vector3d<T> v, const field<T> f)
+{
+    return [v, f](vector3d<T> r){
+        return v * f.operator()(r);
+    };
+}
+
+template<typename T>
+field<T> field<T>::operator*(const T d) const
+{
+    field<T> tmp([&, d](vector3d<T> r){
+        return d * this->operator()(r);
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> operator*(const T d, const field<T> f)
+{
+    field<T> tmp([d, f](vector3d<T> r){
+        return d * f.operator()(r);
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> field<T>::operator^(const field<T> f) const
+{
+    field<T> tmp([&, f](vector3d<T> r){
+        return this->operator()(r) ^
+        f.operator()(r);
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> field<T>::operator^(const vector3d<T> v) const
+{
+    field<T> tmp([&, v](vector3d<T> r){
+        return this->operator()(r) ^ v;
+    });
+    return tmp;
+}
+
+template<typename T>
+field<T> operator^(const vector3d<T> v, const field<T> f)
+{
+    field<T> tmp([v, f](vector3d<T> r){
+        return v ^ f.operator()(r);
+    });
+    return tmp;
 }
 
 template<typename T>

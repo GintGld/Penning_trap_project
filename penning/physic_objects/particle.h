@@ -17,7 +17,7 @@ private:
     vector3d<T> v;
     const T charge, mass;
     const std::string special_type;
-
+    
     particle(vector3d<T> r, vector3d<T> v, T charge, T mass, std::string special_type);
 
 public:
@@ -25,6 +25,8 @@ public:
     vector3d<T> get_velocity() const;
     T get_charge() const;
     T get_mass() const;
+
+    particle operator=(const particle p_new);
 
     void set_position(const vector3d<T>& r_new);
     void set_velocity(const vector3d<T>& v_new);
@@ -104,6 +106,19 @@ particle<T>::set_velocity(const vector3d<T>& v_new)
 {
     v = v_new;
     return;
+}
+
+template<typename T>
+particle<T>
+particle<T>::operator=(const particle<T> p_new)
+{
+    if (charge != p_new.charge || mass != p_new.mass || special_type != p_new.special_type)
+    {
+        throw("Particles' parameters are not the same.\nThis operator can change only r-vector and v-vector");
+    }
+    r = p_new.r;
+    v = p_new.v;
+    return *this;
 }
 
 template<typename T>
