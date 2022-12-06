@@ -55,6 +55,7 @@ public:
     field<T> operator^=(const field<T> f);
     field<T> operator*=(const T mult);
     field<T> operator/=(const T mult);
+    field<T> operator -() const;
 
     // Function for constructing a field
     template <typename T_cust>
@@ -251,6 +252,15 @@ field<T> field<T>::operator/=(const T mult)
         tmp(r) / mult;
     });
     return *this;
+}
+
+template <typename T>
+field<T> field<T>::operator-() const
+{
+    field<T> tmp([&](vector3d<T> r){
+        return -this->operator()(r);
+    });
+    return tmp;
 }
 
 ////////////////////////////////////////
