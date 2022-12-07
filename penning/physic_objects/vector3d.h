@@ -71,6 +71,7 @@ public:
 ////////////////////////////////////////
 //            Constructors            //
 ////////////////////////////////////////
+
 template<typename T>
 vector3d<T>::vector3d():
     data(new T[3]) {}
@@ -91,6 +92,7 @@ vector3d<T>::vector3d(T* arr):
 ////////////////////////////////////////
 //                RAII                //
 ////////////////////////////////////////
+
 template<typename T>
 vector3d<T>::vector3d(const vector3d<T>& lhs):
     data(new T[3])
@@ -134,6 +136,7 @@ vector3d<T>::~vector3d()
 ////////////////////////////////////////
 //          Binary Operators          //
 ////////////////////////////////////////
+
 template<typename T>
 bool vector3d<T>::operator==(const vector3d<T>& other) const
 {
@@ -206,6 +209,7 @@ vector3d<T>& vector3d<T>::operator/(const T& d) const
 ////////////////////////////////////////
 //           Unary operators          //
 ////////////////////////////////////////
+
 template<typename T>
 vector3d<T>& vector3d<T>::operator +=(const vector3d& other)
 {
@@ -263,6 +267,7 @@ vector3d<T>& vector3d<T>::operator -() const
 ////////////////////////////////////////
 //              Methods               //
 ////////////////////////////////////////
+
 template<typename T>
 T& vector3d<T>::x()
 {

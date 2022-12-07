@@ -7,18 +7,25 @@
 
 using std::size_t;
 
+////////////////////////////////////////
+//            Declaration             //
+////////////////////////////////////////
+
 template<typename T>
 struct narray
 {
 private:
+    // Inner variables
     std::vector<T> data;
     size_t narray_size;
 
 public:
+    // Constructors
     narray();
     narray(const std::initializer_list<T> l);
     narray(const std::vector<T> v);
 
+    // Methods
     void push_back(const T var);
     size_t size() const;
     void clean();
@@ -26,6 +33,7 @@ public:
     T& operator[](const size_t i);
     T  operator[](const size_t i) const;
 
+    // Binary Operators
     narray operator+(const narray other) const;
     narray operator-(const narray other) const;
     narray operator*(const T mult) const;
@@ -35,6 +43,14 @@ public:
     friend narray<T2> operator*(const T1 mult, const narray<T2> arr);
 };
 
+////////////////////////////////////////
+//             Definition             //
+////////////////////////////////////////
+
+////////////////////////////////////////
+//            Constructors            //
+////////////////////////////////////////
+
 template<typename T>
 narray<T>::narray(): narray_size(0) {}
 
@@ -43,6 +59,10 @@ narray<T>::narray(const std::initializer_list<T> l): data(l), narray_size(l.size
 
 template<typename T>
 narray<T>::narray(const std::vector<T> v): data(v), narray_size(v.size()) {}
+
+////////////////////////////////////////
+//              Methods               //
+////////////////////////////////////////
 
 template<typename T>
 void narray<T>::push_back(const T var)
@@ -77,6 +97,10 @@ T narray<T>::operator[](const size_t i) const
 {
     return this->data[i];
 }
+
+////////////////////////////////////////
+//          Binary Operators          //
+////////////////////////////////////////
 
 template<typename T>
 narray<T> narray<T>::operator+(const narray<T> other) const
