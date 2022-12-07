@@ -25,15 +25,6 @@ T rk45(
     S h
 );
 
-/*template<class T, typename S>
-T simple_step(
-    S t,
-    T phase,
-    std::function<narray<T>(S,narray<T>)> f,
-    S h,
-    std::string type
-);*/
-
 template<class T, typename S>
 T step(
     S t,
@@ -75,21 +66,6 @@ T rk45(
     return phase + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
 }
 
-/*template<class T, typename S>
-T simple_step(
-    S t,
-    T phase,
-    std::function<narray<T>(S,narray<T>)> f,
-    S h,
-    std::string type = "rk45"
-)
-{
-    if (type == "heun")
-        return heun(t, phase, f, h);
-    if (type == "rk45")
-        return rk45(t, phase, f, h);
-}*/
-
 template<class T, typename S>
 T step(
     S t,
@@ -103,10 +79,10 @@ T step(
     T k = phase;
     if (type == "heun")
         for(unsigned i = 0; i < N; ++i)
-            k = heun(t, k, f, h);
+            k = heun(t, k, f, h / N);
     if (type == "rk45")
         for(unsigned i = 0; i < N; ++i)
-            k = rk45(t, k, f, h);
+            k = rk45(t, k, f, h / N);
 
     return k;
 }
