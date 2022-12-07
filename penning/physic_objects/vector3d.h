@@ -60,8 +60,9 @@ public:
     friend std::string to_str(const vector3d<T_for_string>& v);
 };
 
-#define vector_f vector3d<float>
-#define vector_d vector3d<double>
+#define vector_f  vector3d<float>
+#define vector_d  vector3d<double>
+#define vector_ld vector3d<long double>
 
 ////////////////////////////////////////
 //             Definition             //
