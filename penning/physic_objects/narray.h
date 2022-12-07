@@ -28,7 +28,7 @@ public:
     // Methods
     void push_back(const T var);
     size_t size() const;
-    void clean();
+    void clear();
 
     T& operator[](const size_t i);
     T  operator[](const size_t i) const;
@@ -79,9 +79,9 @@ size_t narray<T>::size() const
 }
 
 template<typename T>
-void narray<T>::clean()
+void narray<T>::clear()
 {
-    data.clean();
+    data.clear();
     narray_size = 0;
     return;
 }
