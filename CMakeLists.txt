@@ -1,18 +1,28 @@
-cmake_minimum_required(VERSION 3.10)
-
+cmake_minimum_required(VERSION 3.14)
 project(pt)
-
 add_executable("${PROJECT_NAME}" main.cpp)
 
-add_subdirectory(penning REQUIRED)
-find_package(Matplot++ REQUIRED)
-
-target_link_libraries("${PROJECT_NAME}" PUBLIC penning)
+# inclide Matplot++
+find_package(Matplot++ QUIET)
+if (Matplot++_FOUND)
 target_link_libraries("${PROJECT_NAME}" PUBLIC Matplot++::matplot)
+else()
+add_subdirectory(matplotplusplus)
+target_link_libraries("${PROJECT_NAME}" PUBLIC matplot)
+endif()
+if (Matplot++_FOUND)
+    message(STATUS "Matplot++ library was found")
+else()
+    message(STATUS "Matplot++ library wasn't found. Try to install library in working directory.")
+    return()
+endif()
 
+# include Phys
+add_subdirectory(src)
+target_link_libraries("${PROJECT_NAME}" INTERFACE phys)
 target_include_directories("${PROJECT_NAME}" PUBLIC
                           "${PROJECT_BINARY_DIR}"
-                          "${PROJECT_SOURCE_DIR}/penning"
-                          )
+                          "${PROJECT_SOURCE_DIR}/src")
 
+# install binary
 install(TARGETS "${PROJECT_NAME}" DESTINATION bin)
