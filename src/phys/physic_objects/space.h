@@ -187,7 +187,7 @@ void make_step(particle<T>& p, space<T>& S, T t, T h, std::string type, unsigned
     std::function<narray<vector3d<T> >(T, narray<vector3d<T> >)>
     f = [p, E, M](T time, narray<vector3d<T> > arr){
         return narray<vector3d<T> >
-            {arr[1], (p.get_charge() / p.get_mass()) * (E(arr[0]) + ((arr[1] / SPEED_OF_LIGHT) ^ M(arr[0])))};
+            {arr[1], (p.get_charge() / p.get_mass()) * (E(time, arr[0]) + ((arr[1] / SPEED_OF_LIGHT) ^ M(time, arr[0])))};
     };
     narray<vector3d<T> > arr = step(t, narray<vector3d<T> > {r, v}, f, h, type, N);
     p.set_position(arr[0]);
@@ -207,8 +207,10 @@ void space<T>::solve(T time, T dt, std::string type, unsigned N_repeat)
     }
     /*
         ToDo:
-        Add constant that constraints the history size
-        and call write method whet it's needed
+        --  Add history size constraint
+            and call write method whet it's needed
+        --  Add distance that will be trigger to 
+            stop modeling
     */
     return;
 }
