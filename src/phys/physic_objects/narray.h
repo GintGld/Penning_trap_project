@@ -22,25 +22,25 @@ private:
 public:
     // Constructors
     narray();
-    narray(const std::initializer_list<T> l);
-    narray(const std::vector<T> v);
+    narray(const std::initializer_list<T>);
+    narray(const std::vector<T>);
 
     // Methods
-    void push_back(const T var);
+    void push_back(const T);
     size_t size() const;
     void clear();
 
-    T& operator[](const size_t i);
-    T  operator[](const size_t i) const;
+    T& operator[](const size_t);
+    T  operator[](const size_t) const;
 
     // Binary Operators
-    narray operator+(const narray other) const;
-    narray operator-(const narray other) const;
-    narray operator*(const T mult) const;
-    narray operator/(const T mult) const;
+    narray operator+(const narray) const;
+    narray operator-(const narray) const;
+    narray operator*(const T) const;
+    narray operator/(const T) const;
 
     template<typename T1, typename T2>
-    friend narray<T2> operator*(const T1 mult, const narray<T2> arr);
+    friend narray<T2> operator*(const T1, const narray<T2>);
 };
 
 ////////////////////////////////////////

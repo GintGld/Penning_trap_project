@@ -2,6 +2,7 @@
 #define PARTICLE_H
 
 #include <iostream>
+
 #include "vector3d.h"
 #include "constants.h"
 
@@ -18,7 +19,7 @@ private:
     const T charge, mass;
     const std::string special_type;
     
-    particle(vector3d<T> r, vector3d<T> v, T charge, T mass, std::string special_type);
+    particle(vector3d<T>, vector3d<T>, T, T, std::string);
 
 public:
     vector3d<T> get_position() const;
@@ -26,29 +27,29 @@ public:
     T get_charge() const;
     T get_mass() const;
 
-    particle operator=(const particle p_new);
+    particle operator=(const particle);
 
-    void set_position(const vector3d<T>& r_new);
-    void set_velocity(const vector3d<T>& v_new);
+    void set_position(const vector3d<T>&);
+    void set_velocity(const vector3d<T>&);
 
     template<typename T_for_el>
-    friend particle<T_for_el> new_electron(vector3d<T_for_el> r, vector3d<T_for_el> v);
+    friend particle<T_for_el> new_electron(vector3d<T_for_el>, vector3d<T_for_el>);
 
     template<typename T_for_prot>
-    friend particle<T_for_prot> new_proton(vector3d<T_for_prot> r, vector3d<T_for_prot> v);
+    friend particle<T_for_prot> new_proton(vector3d<T_for_prot>, vector3d<T_for_prot>);
 
     template<typename T_for_custom>
     friend particle<T_for_custom> new_particle(
-        vector3d<T_for_custom> r, 
-        vector3d<T_for_custom> v,
-        T_for_custom charge,
-        T_for_custom mass);
+        vector3d<T_for_custom>,
+        vector3d<T_for_custom>,
+        T_for_custom,
+        T_for_custom);
 
     template<typename T_for_str>
-    friend std::string to_str(const particle<T_for_str> p);
+    friend std::string to_str(const particle<T_for_str>);
 
     template<typename T_for_ostream>
-    friend std::ostream & operator << (std::ostream& os, const particle<T_for_ostream>& p);
+    friend std::ostream & operator << (std::ostream&, const particle<T_for_ostream>&);
 };
 
 ////////////////////////////////////////

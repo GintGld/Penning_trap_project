@@ -17,49 +17,49 @@ struct field final
 private:
     std::function<vector3d<T>(vector3d<T>)> f;
 
-    field(std::function<vector3d<T>(vector3d<T>)> f);
+    field(std::function<vector3d<T>(vector3d<T>)>);
 
 public:
 
     // Methods
-    void set_function(std::function<vector3d<T>(vector3d<T>)> f_new);
+    void set_function(std::function<vector3d<T>(vector3d<T>)>);
 
-    vector3d<T> operator()(vector3d<T> r) const;
+    vector3d<T> operator()(vector3d<T>) const;
 
     // Binary Operators
-    field<T> operator=(const field<T> f);
-    field<T> operator+(const field<T> f) const;
-    field<T> operator-(const field<T> f) const;
+    field<T> operator=(const field<T>);
+    field<T> operator+(const field<T>) const;
+    field<T> operator-(const field<T>) const;
     std::function<T(vector3d<T>)>
-    operator*(const field<T> f) const;
+    operator*(const field<T>) const;
     std::function<T(vector3d<T>)>
-    operator*(const vector3d<T> v) const;
-    field<T> operator*(const T d) const;
-    field<T> operator/(const T d) const;
-    field<T> operator^(const field<T> f) const;
-    field<T> operator^(const vector3d<T> v) const;
+    operator*(const vector3d<T>) const;
+    field<T> operator*(const T) const;
+    field<T> operator/(const T) const;
+    field<T> operator^(const field<T>) const;
+    field<T> operator^(const vector3d<T>) const;
 
     template <typename T_mult>
-    friend field<T_mult> operator*(const T_mult d, const field<T_mult> f);
+    friend field<T_mult> operator*(const T_mult, const field<T_mult>);
 
     template <typename T_mult>
     friend std::function<T_mult(vector3d<T_mult>)>
-    operator*(const vector3d<T_mult> v, const field<T_mult> f);
+    operator*(const vector3d<T_mult>, const field<T_mult>);
 
     template <typename T_mult>
-    friend field<T_mult> operator^(const vector3d<T_mult> d, const field<T_mult> f);
+    friend field<T_mult> operator^(const vector3d<T_mult>, const field<T_mult>);
 
     // Unary Operators
-    field<T> operator+=(const field<T> f);
-    field<T> operator-=(const field<T> f);
-    field<T> operator^=(const field<T> f);
-    field<T> operator*=(const T mult);
-    field<T> operator/=(const T mult);
+    field<T> operator+=(const field<T>);
+    field<T> operator-=(const field<T>);
+    field<T> operator^=(const field<T>);
+    field<T> operator*=(const T);
+    field<T> operator/=(const T);
     field<T> operator -() const;
 
     // Function for constructing a field
     template <typename T_cust>
-    friend field<T_cust> new_field(std::function<vector3d<T_cust>(vector3d<T_cust>)> f);
+    friend field<T_cust> new_field(std::function<vector3d<T_cust>(vector3d<T_cust>)>);
 };
 
 ////////////////////////////////////////

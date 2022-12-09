@@ -26,12 +26,7 @@ private:
     narray<narray<vector3d<T> > > history;
     
     // Private Constructors
-    space(
-        particle<T> P,
-        field<T> E,
-        field<T> M,
-        vector3d<T> space_size
-    );
+    space(particle<T>, field<T>, field<T>, vector3d<T>);
     space();
 
 public:
@@ -41,29 +36,23 @@ public:
     field<T>    get_M_field() const;
     vector3d<T> get_size() const;
     size_t get_history_size() const;
-    void set_particle(particle<T> p);
-    void set_E_field(field<T> f);
-    void set_M_field(field<T> f);
-    void set_size(vector3d<T> v);
-    void add_to_history(narray<vector3d<T> > v);
-    void solve(T time, T dt, std::string type, unsigned N_repeat);
-    int write(std::string file);
+    void set_particle(particle<T>);
+    void set_E_field(field<T>);
+    void set_M_field(field<T>);
+    void set_size(vector3d<T>);
+    void add_to_history(narray<vector3d<T> >);
+    void solve(T, T, std::string, unsigned);
+    int write(std::string);
     void clear();
 
     // Function for constructing custom space
     template<typename T_new>
-    friend space<T_new> new_space(particle<T_new> p, field<T_new> E, field<T_new> M, vector3d<T_new> space_size);
+    friend space<T_new> new_space(particle<T_new>, field<T_new>, field<T_new>, vector3d<T_new>);
 
     // Function that make step of modeling for one particle
     template<typename T1>
     friend void
-    make_step(
-        particle<T>& p,
-        space<T>& S,
-        T t,
-        T h,
-        std::string type, unsigned N
-    );
+    make_step(particle<T>&, space<T>&, T, T, std::string, unsigned);
 };
 
 ////////////////////////////////////////

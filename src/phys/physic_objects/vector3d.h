@@ -1,5 +1,6 @@
 #ifndef VECTOR3D_H
 #define VECTOR3D_H
+
 #include <string>
 #include <cmath>
 
@@ -15,32 +16,32 @@ protected:
 public:
     // Constructors
     vector3d();
-    vector3d(const T& x, const T& y, const T& z);
-    vector3d(T* arr);
+    vector3d(const T&, const T&, const T&);
+    vector3d(T*);
 
     // RAII
-    vector3d(const vector3d& lhs);
-    vector3d& operator=(const vector3d& lhs);
-    vector3d(vector3d&& rhs);
-    vector3d& operator=(vector3d&& rhs);
+    vector3d(const vector3d&);
+    vector3d& operator=(const vector3d&);
+    vector3d(vector3d&&);
+    vector3d& operator=(vector3d&&);
     ~vector3d();
 
     // Binary operators
-    bool      operator==(const vector3d& other) const;
-    bool      operator!=(const vector3d& other) const;
-    vector3d& operator+ (const vector3d& other) const;
-    vector3d& operator- (const vector3d& other) const;
-    T&        operator* (const vector3d& other) const;
-    vector3d& operator^ (const vector3d& other) const;
-    vector3d& operator* (const T& mult) const;
-    vector3d& operator/ (const T& mult) const;
+    bool      operator==(const vector3d&) const;
+    bool      operator!=(const vector3d&) const;
+    vector3d& operator+ (const vector3d&) const;
+    vector3d& operator- (const vector3d&) const;
+    T&        operator* (const vector3d&) const;
+    vector3d& operator^ (const vector3d&) const;
+    vector3d& operator* (const T&) const;
+    vector3d& operator/ (const T&) const;
 
     // Unary operators
-    vector3d& operator+=(const vector3d& other);
-    vector3d& operator-=(const vector3d& other);
-    vector3d& operator*=(const T& mult);
-    vector3d& operator/=(const T& mult);
-    vector3d& operator^=(const vector3d& other);
+    vector3d& operator+=(const vector3d&);
+    vector3d& operator-=(const vector3d&);
+    vector3d& operator*=(const T&);
+    vector3d& operator/=(const T&);
+    vector3d& operator^=(const vector3d&);
     vector3d& operator- () const;
 
     // Methods
@@ -53,11 +54,11 @@ public:
     T  len() const;
     void print();
     template<typename T_for_ostream>
-    friend std::ostream & operator << (std::ostream& os, const vector3d<T_for_ostream>& v);
+    friend std::ostream & operator << (std::ostream&, const vector3d<T_for_ostream>&);
     template<typename T1, typename T2>
-    friend vector3d<T2>& operator*(const T1& m, const vector3d<T2>& v);
+    friend vector3d<T2>& operator*(const T1&, const vector3d<T2>&);
     template<typename T_for_string>
-    friend std::string to_str(const vector3d<T_for_string>& v);
+    friend std::string to_str(const vector3d<T_for_string>&);
 };
 
 #define vector_f  vector3d<float>
