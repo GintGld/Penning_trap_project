@@ -4,17 +4,13 @@ add_executable("${PROJECT_NAME}" main.cpp)
 
 # inclide Matplot++
 find_package(Matplot++ QUIET)
-if (Matplot++_FOUND)
+    if (Matplot++_FOUND)
+    message(STATUS "Matplot++ library was found")
 target_link_libraries("${PROJECT_NAME}" PUBLIC Matplot++::matplot)
 else()
-add_subdirectory(matplotplusplus)
-target_link_libraries("${PROJECT_NAME}" PUBLIC matplot)
-endif()
-if (Matplot++_FOUND)
+    add_subdirectory(matplotplusplus)
+    target_link_libraries("${PROJECT_NAME}" PUBLIC matplot)
     message(STATUS "Matplot++ library was found")
-else()
-    message(STATUS "Matplot++ library wasn't found. Try to install library in working directory.")
-    return()
 endif()
 
 # include Phys
