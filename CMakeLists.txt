@@ -5,7 +5,7 @@ add_executable("${PROJECT_NAME}" main.cpp)
 # include Phys
 add_subdirectory(src)
 target_link_libraries("${PROJECT_NAME}" INTERFACE phys)
-target_link_libraries("${PROJECT_NAME}" INTERFACE penning)
+target_link_libraries("${PROJECT_NAME}" PUBLIC penning)
 target_include_directories("${PROJECT_NAME}" PUBLIC
                         "${PROJECT_BINARY_DIR}"
                         "${PROJECT_SOURCE_DIR}/src")
