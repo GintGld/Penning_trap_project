@@ -1,7 +1,6 @@
 #ifndef SOLVING_METHODS_H
 #define SOLVING_METHODS_H
 
-#include <array>
 #include <string>
 #include <functional>
 
@@ -10,30 +9,13 @@
 ////////////////////////////////////////
 
 template<class T, typename S>
-T heun(
-    S t,
-    T phase,
-    std::function<T(S,T)> f,
-    S h
-);
+T heun(S, T, std::function<T(S,T)>, S);
 
 template<class T, typename S>
-T rk45(
-    S t,
-    T phase,
-    std::function<T(S,T)> f,
-    S h
-);
+T rk45(S, T, std::function<T(S,T)>, S);
 
 template<class T, typename S>
-T step(
-    S t,
-    T phase,
-    std::function<T(S,T)> f,
-    S h,
-    std::string type,
-    unsigned long long N
-);
+T step(S, T, std::function<T(S,T)>, S, std::string, unsigned long long);
 
 ////////////////////////////////////////
 //            Definition              //

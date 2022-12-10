@@ -1,20 +1,28 @@
 #include <iostream>
-#include <vector>
-#include <cmath>
-#include <fstream>
+#include <map>
 
 #include "penning/penning.h"
+#include "phys/phys.h"
 #include "matplot/matplot.h"
 
+
+using std::cin;
 using std::cout;
 using std::endl; 
 
 
 int main()
 {
-    auto E = penning_E<double>(1, 0);
+    //system_configuration system_status; // main variable
+
+    cout << sum(3, 4) << endl;
+
+    //system("clear");
+    return 0;
+
+    /*auto E = penning_E<double>(1, 0);
     auto M = penning_M<double>(vector_d (0,0,10));
-    auto p = new_particle<double>(vector_d(5,0,0), vector_d(1,0,1), 1, 1);
+    auto p = new_particle<double>(vector_d(0,0,0), vector_d(1,0,1), 1, 1);
 
     auto s = new_space(p, E, M, vector_d (1,1,1));
 
@@ -56,5 +64,5 @@ int main()
     matplot::plot3(x, y, z);
     matplot::show();
 
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS;*/
 }
