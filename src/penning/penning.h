@@ -2,24 +2,30 @@
 #define PENNING_H
 
 #include <string>
-
-int sum(int, int);
+#include <map>
+#include <vector>
 
 class system_configuration final
 {
 private:
-    std::string income_command;
     std::string current_status;
 
-public:
+    std::map<std::string, double> model_config;
+    //std::multimap<std::string, std::string> request_dependencies;
+    std::vector<std::string> configurations;
 
-    bool is_command_exit(std::string);
+    bool clear, incorrect_input;
+    std::string model_name = "unknown";
 
-    std::string init();
-    std::string menu();
-    std::string new_config();
+    system_configuration();
 
+    void read_request_dependencies();
+    void read_saved_configurations();
+    void print_model();
+    void print();
+    void get_request();
+
+    friend void execute_penning();
 };
-
 
 #endif // PENNING_H
