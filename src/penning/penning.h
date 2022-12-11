@@ -1,6 +1,7 @@
 #ifndef PENNING_H
 #define PENNING_H
 
+#include <fstream>
 #include <string>
 #include <map>
 #include <vector>
@@ -15,15 +16,17 @@ private:
     std::vector<std::string> configurations;
 
     bool clear, incorrect_input;
-    std::string model_name = "unknown";
+    std::string income_command, model_name = "unknown";
 
     system_configuration();
 
     void read_request_dependencies();
     void read_saved_configurations();
     void print_model();
+    void save_model(std::ofstream&);
     void print();
     void get_request();
+    void stop();
 
     friend void execute_penning();
 };
