@@ -22,6 +22,7 @@ private:
 
     system_configuration();
 
+    void count(double);
     void read_request_dependencies();
     void read_saved_configurations();
     void read_configuration(std::string);

@@ -132,7 +132,8 @@ void system_configuration::print_model()
             "Particle posotion:\t" << 
             "(" << model_config["X"] << ", " << model_config["Y"] << ", " << model_config["Z"] << ")\n" <<
             "Particle velocity:\t" <<
-            "(" << model_config["V_X"] << ", " << model_config["V_Y"] << ", " << model_config["V_Z"] << ")\n\n";
+            "(" << model_config["V_X"] << ", " << model_config["V_Y"] << ", " << model_config["V_Z"] << ")\n" <<
+            "----------------------------------" << endl;
     return;
 }
 
@@ -157,6 +158,11 @@ void system_configuration::save_model(std::ofstream& out)
         "V_Z : "      << model_config["V_Z"];
 }
 
+void system_configuration::count(double time)
+{
+
+}
+
 void system_configuration::print()
 {
     if (!print_)
@@ -176,8 +182,8 @@ void system_configuration::print()
     {
         cout << 
             "Write\n" <<
-            "1) start\n" <<
-            "2) exit\n";
+            "1) Start\n" <<
+            "2) Exit\n";
     }
     else if (current_status == "main_menu")
     {
@@ -187,8 +193,8 @@ void system_configuration::print()
         {
             cout << i + 1 << ") " << configurations[i] << endl;
         }
-        cout << configurations.size() + 1 << ") new configuration ...\n" <<
-                configurations.size() + 2 << ") exit\n";
+        cout << configurations.size() + 1 << ") New configuration ...\n" <<
+                configurations.size() + 2 << ") Exit\n";
     }
     else if (current_status == "new_config")
     {
@@ -205,6 +211,9 @@ void system_configuration::print()
     else if (current_status == "new_config->particle")
     {
         cout << "Write:\n" << 
+                "electron\n" <<
+                "positron\n" <<
+                "proton\n" <<
                 "mass <value>\n" <<
                 "charge <value>\n" <<
                 "exit\n";
@@ -296,9 +305,9 @@ void system_configuration::print()
         cout << "Configuration: " << model_name << endl;
         print_model();
         cout << "Write:\n" <<
-                "1) start\n" <<
-                "2) delete\n" <<
-                "3) exit\n";
+                "<time value>\n" <<
+                "del\n" <<
+                "exit\n";
     }
     else if (current_status == "pre-launch_window->delete")
     {
@@ -321,7 +330,6 @@ void system_configuration::print()
 void system_configuration::get_request()
 {
     std::getline(cin, income_command);
-    //cout << endl;
 
     incorrect_input = false;
     clear = true;
@@ -374,6 +382,11 @@ void system_configuration::get_request()
         if (income_command == std::to_string(configurations.size() + 2) || income_command == "Exit" || income_command == "exit")
         {
             current_status = "initial_menu";
+            return;
+        }
+        else if (income_command == "new" || income_command == "New")
+        {
+            current_status = "new_config";
             return;
         }
         try{
@@ -454,6 +467,27 @@ void system_configuration::get_request()
     {
         if (income_command == "exit" || income_command == "Exit")
         {
+            current_status = "new_config";
+            return;
+        }
+        else if (income_command == "electron")
+        {
+            model_config["MASS"] = 1;
+            model_config["CHARGE"] = -1;
+            current_status = "new_config";
+            return;
+        }
+        else if (income_command == "positron")
+        {
+            model_config["MASS"] = 1;
+            model_config["CHARGE"] = 1;
+            current_status = "new_config";
+            return;
+        }
+        else if (income_command == "proton")
+        {
+            model_config["MASS"] = 1836;
+            model_config["CHARGE"] = 1;
             current_status = "new_config";
             return;
         }
@@ -899,28 +933,30 @@ void system_configuration::get_request()
     }
     else if (current_status == "pre-launch_window")
     {
-        if (income_command == "1" || income_command == "start" || income_command == "Start")
-        {
-            current_status = "model";
-            return;
-        }
-        else if (income_command == "2" || income_command == "delete" || income_command == "Delete")
+        if (income_command == "del" || income_command == "Del" || income_command == "delete" || income_command == "Delete")
         {
             current_status = "pre-launch_window->delete";
             return;
         }
-        else if (income_command == "3" || income_command == "exit" || income_command == "Exit")
+        else if (income_command == "exit" || income_command == "Exit")
         {
-            current_status = "main_menu";
             reset_config();
+            current_status = "main_menu";
             return;
         }
-        else
-        {
+        try {
+            double time = std::stod(income_command);
+            current_status = "model";
+            return;
+        }
+        catch (...) {
             clear = false;
             incorrect_input = true;
             return;
         }
+        clear = false;
+        incorrect_input = true;
+        return;
     }
     else if (current_status == "pre-launch_window->delete")
     {
