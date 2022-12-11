@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+#include "phys/phys.h"
+
 void execute_penning();
 
 class system_configuration final
@@ -19,6 +21,9 @@ private:
 
     bool clear = true, incorrect_input = false, print_ = true;
     std::string income_command, model_name = "unknown";
+    double time = 0;
+    space<double> model_space = new_space<double>();
+    std::vector<double> x, y, z, vx, vy, vz, t;
 
     system_configuration();
 

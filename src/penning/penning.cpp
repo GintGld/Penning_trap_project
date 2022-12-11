@@ -160,7 +160,43 @@ void system_configuration::save_model(std::ofstream& out)
 
 void system_configuration::count(double time)
 {
+    model_space.set_particle( new_particle<double>(
+        vector3d<double> (model_config["X"], model_config["Y"], model_config["Z"]),
+        vector3d<double> (model_config["V_X"], model_config["V_Y"], model_config["V_Z"]),
+        model_config["CHARGE"], model_config["MASS"]));
+    model_space.set_E_field(penning_E(model_config["E_C"], model_config["E_EPS"]));
+    model_space.set_M_field( penning_M(
+        vector3d<double>(model_config["M_X"], model_config["M_Y"], model_config["M_Z"])));
 
+    model_space.solve(time, .01, "rk45", 10);
+    model_space.write("src/penning/output");
+
+    vector3d<double> r;
+    x.clear(); y.clear(); z.clear();
+    vx.clear(); vy.clear(); vz.clear();
+    t.clear();
+
+    std::ifstream in("src/penning/output.binary", std::ios::binary);
+    for (int i = 0; i < (unsigned)(time / .01); ++i)
+    {
+        in.read((char*) &r, sizeof(vector_d));
+        x.push_back(r.x());
+        y.push_back(r.y());
+        z.push_back(r.z());
+        in.read((char*) &r, sizeof(vector_d));
+        vx.push_back(r.x());
+        vy.push_back(r.y());
+        vz.push_back(r.z());
+        t.push_back((double)(.01 * i));
+    }
+    in.close();
+    try {
+        system("rm src/penning/output.binary");
+    }
+    catch (...) {
+        cout << "Cannot run rm src/penning/output.binary";
+        return;
+    }
 }
 
 void system_configuration::print()
@@ -315,12 +351,12 @@ void system_configuration::print()
     }
     else if (current_status == "model")
     {
-        cout << "something about status maybe and warning if particle flew out of box\n";
+        cout << model_name << " was successfully modeled\n";
 
         cout << "write:\n" <<
-                "1) 3d plot\n" <<
-                "2) projection <two coordinates>\n" <<
-                "3) time <one coordinate>\n" <<
+                "1) 3d (plot)\n" <<
+                "2) <two coordinates for projection>\n" <<
+                "3) <one coordinate for time dependency>\n" <<
                 "4) exit\n";
     }
     cout << "penning> ";
@@ -946,6 +982,7 @@ void system_configuration::get_request()
         }
         try {
             double time = std::stod(income_command);
+            count(time);
             current_status = "model";
             return;
         }
@@ -996,7 +1033,44 @@ void system_configuration::get_request()
     }
     else if (current_status == "model")
     {
-
+        if (income_command == "3d" or income_command == "3d plot")
+        {
+            matplot::xlabel("x");
+            matplot::ylabel("y");
+            matplot::zlabel("z");
+            matplot::plot3(x, y, z);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "xy" || income_command == "XY")
+        {
+            matplot::xlabel("x");
+            matplot::ylabel("y");
+            matplot::grid(true);
+            matplot::plot(x, y);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "x" || income_command == "X")
+        {
+            matplot::xlabel("t");
+            matplot::ylabel("x");
+            matplot::grid(true);
+            matplot::plot(t, x);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "exit" || income_command == "Exit")
+        {
+            current_status = "pre-launch_window";
+            return;
+        }
+        else
+        {
+            clear = false;
+            incorrect_input = true;
+            return;
+        }
     }
     else
     {
