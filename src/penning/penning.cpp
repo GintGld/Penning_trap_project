@@ -14,17 +14,9 @@ using std::endl;
 
 system_configuration::system_configuration()
 {
-    //this->read_request_dependencies();
-    current_status = "initial_menu";
-    this->read_saved_configurations();
-
-    //double 
-     //       CHARGE = 1, MASS = 1, 
-      //      E_C = 1, E_EPS = 0, ROT_AMPL = 0, ROT_FREQ = 0, 
-       //     M_X = 0, M_Y = 0, M_Z = 10, 
-        //    SIZE = 20, X = 1, Y = 0, Z = 0, VX = 0, VY = 1, VZ = 0;
-    
+    read_saved_configurations();
     reset_config();
+    current_status = "initial_menu";
 }
 
 void execute_penning()
@@ -36,7 +28,9 @@ void execute_penning()
         system_status.print();
         system_status.get_request();
     }
+
     system_status.stop();
+
     return;
 }
 
@@ -106,7 +100,32 @@ void system_configuration::reset_config()
     model_config["V_X"] = 0;
     model_config["V_Y"] = 1;
     model_config["V_Z"] = 0;
+    x.clear(); y.clear(); z.clear();
+    vx.clear(); vy.clear(); vz.clear();
+    t.clear();
     return;
+}
+
+bool system_configuration::is_config_changed()
+{
+    bool f = false;
+    f |= (model_config["CHARGE"] != 1);
+    f |= (model_config["MASS"] != 1);
+    f |= (model_config["E_C"] != 1);
+    f |= (model_config["E_EPS"] != 0);
+    f |= (model_config["ROT_AMPL"] != 0);
+    f |= (model_config["ROT_FREQ"] != 0);
+    f |= (model_config["M_X"] != 0);
+    f |= (model_config["M_Y"] != 0);
+    f |= (model_config["M_Z"] != 10);
+    f |= (model_config["SIZE"] != 20);
+    f |= (model_config["X"] != 1);
+    f |= (model_config["Y"] != 0);
+    f |= (model_config["Z"] != 0);
+    f |= (model_config["V_X"] != 0);
+    f |= (model_config["V_Y"] != 1);
+    f |= (model_config["V_Z"] != 0);
+    return f;
 }
 
 void system_configuration::print_model()
@@ -156,6 +175,7 @@ void system_configuration::save_model(std::ofstream& out)
         "V_X : "      << model_config["V_X"] << endl << 
         "V_Y : "      << model_config["V_Y"] << endl << 
         "V_Z : "      << model_config["V_Z"];
+    return;
 }
 
 void system_configuration::count(double time)
@@ -163,35 +183,53 @@ void system_configuration::count(double time)
     model_space.set_particle( new_particle<double>(
         vector3d<double> (model_config["X"], model_config["Y"], model_config["Z"]),
         vector3d<double> (model_config["V_X"], model_config["V_Y"], model_config["V_Z"]),
-        model_config["CHARGE"], model_config["MASS"]));
-    model_space.set_E_field(penning_E(model_config["E_C"], model_config["E_EPS"]));
+        abs(model_config["CHARGE"]), model_config["MASS"]));
+    model_space.set_E_field( penning_E(model_config["E_C"], model_config["E_EPS"]));
     model_space.set_M_field( penning_M(
         vector3d<double>(model_config["M_X"], model_config["M_Y"], model_config["M_Z"])));
 
     model_space.solve(time, .01, "rk45", 10);
-    model_space.write("src/penning/output");
+    model_space.write_T("src/penning/output");
 
-    vector3d<double> r;
     x.clear(); y.clear(); z.clear();
     vx.clear(); vy.clear(); vz.clear();
     t.clear();
 
+    double* r = new double[6];
     std::ifstream in("src/penning/output.binary", std::ios::binary);
-    for (int i = 0; i < (unsigned)(time / .01); ++i)
+    for (int i = 0; i <= (unsigned)(time / .01); ++i)
     {
-        in.read((char*) &r, sizeof(vector_d));
-        x.push_back(r.x());
-        y.push_back(r.y());
-        z.push_back(r.z());
-        in.read((char*) &r, sizeof(vector_d));
-        vx.push_back(r.x());
-        vy.push_back(r.y());
-        vz.push_back(r.z());
+        for (int j = 0; j < 6; ++j)
+            in.read((char*) &r[j], sizeof(double));
+        x.push_back(r[0]);
+        y.push_back(r[1]);
+        z.push_back(r[2]);
+        vx.push_back(r[3]);
+        vy.push_back(r[4]);
+        vz.push_back(r[5]);
         t.push_back((double)(.01 * i));
+
+        if (x[i] >= .5 * model_config["SIZE"] || x[i] <= -.5 * model_config["SIZE"])
+        {
+            is_out_of_borders = true;
+            break;
+        }
+        if (y[i] >= .5 * model_config["SIZE"] || y[i] <= -.5 * model_config["SIZE"])
+        {
+            is_out_of_borders = true;
+            break;
+        }
+        if (z[i] >= .5 * model_config["SIZE"] || z[i] <= -.5 * model_config["SIZE"])
+        {
+            is_out_of_borders = true;
+            break;
+        }
     }
+    delete[] r;
     in.close();
     try {
         system("rm src/penning/output.binary");
+        return;
     }
     catch (...) {
         cout << "Cannot run rm src/penning/output.binary";
@@ -216,10 +254,8 @@ void system_configuration::print()
     }
     else if (current_status == "initial_menu")
     {
-        cout << 
-            "Write\n" <<
-            "1) Start\n" <<
-            "2) Exit\n";
+        cout << "1) Start\n" <<
+                "2) Exit\n";
     }
     else if (current_status == "main_menu")
     {
@@ -246,82 +282,59 @@ void system_configuration::print()
     }
     else if (current_status == "new_config->particle")
     {
-        cout << "Write:\n" << 
-                "electron\n" <<
-                "positron\n" <<
-                "proton\n" <<
-                "mass <value>\n" <<
-                "charge <value>\n" <<
-                "exit\n";
+        cout << "-- electron\n" <<
+                "-- positron\n" <<
+                "-- proton\n" <<
+                "-- mass <value>\n" <<
+                "-- charge <value>\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->E_field")
     {
-        cout << "Write:\n" << 
-                "static\n" <<
-                "rotating\n" <<
-                "exit\n";
-    }
-    else if (current_status == "new_config->E_field->static")
-    {
-        cout << "Write:\n" << 
-                "prop <value> (must be > 0)\n" <<
-                "ellipse <value> (lies in [-1,1])\n" <<
-                "exit\n";
-    }
-    else if (current_status == "new_config->E_field->rotating")
-    {
-        cout << "Write:\n" << 
-                "prop <value> (must be > 0)\n" <<
-                "ellipse <value> (lies in [-1,1])\n" <<
-                "ampl <value> (must be > 0)\n" <<
-                "freq <value> (must be > 0)\n" <<
-                "exit\n";
+        cout << "-- prop <value> (must be > 0)\n" <<
+                "-- ellipse <value> (lies in [-1,1])\n" <<
+                "-- ampl <value> (must be > 0)\n" <<
+                "-- freq <value> (must be > 0)\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->M_field")
     {
-        cout << "Write:\n" << 
-                "1) cartesian\n" <<
+        cout << "1) cartesian\n" <<
                 "2) spherical\n" <<
                 "3) exit\n";
     }
     else if (current_status == "new_config->M_field->cartesian")
     {
-        cout << "Write:\n" << 
-                "<M_x> <M_y> <M_z>\n" <<
-                "exit\n";
+        cout << "-- <M_x> <M_y> <M_z>\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->M_field->spherical")
     {
-        cout << "Write:\n" << 
-                "<M_r> <M_theta> <M_phi>\n" <<
-                "(angles are in degrees)\n" <<
-                "exit\n";
+        cout << "-- <M_r> <M_theta> <M_phi>\n" <<
+                "-- (angles are in degrees)\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->geometry")
     {
-        cout << "Write:\n" << 
-                "1) size\n" <<
-                "2) coord\n" <<
-                "3) vel\n" <<
+        cout << "1) size\n" <<
+                "2) coordinate (coord)\n" <<
+                "3) velocity (vel)\n" <<
                 "4) exit\n";
     }
     else if (current_status == "new_config->geometry->size")
     {
-        cout << "Write:\n" << 
-                "<value>\n" <<
-                "exit\n";
+        cout << "-- <value>\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->geometry->coordinate")
     {
-        cout << "Write:\n" << 
-                "<X> <Y> <Z>\n" <<
-                "exit\n";
+        cout << "-- <X> <Y> <Z>\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->geometry->velocity")
     {
-        cout << "Write:\n" << 
-                "<V_x> <V_y> <V_z>\n" <<
-                "exit\n";
+        cout << "-- <V_x> <V_y> <V_z>\n" <<
+                "-- exit\n";
     }
     else if (current_status == "new_config->save")
     {
@@ -340,10 +353,9 @@ void system_configuration::print()
     {
         cout << "Configuration: " << model_name << endl;
         print_model();
-        cout << "Write:\n" <<
-                "<time value>\n" <<
-                "del\n" <<
-                "exit\n";
+        cout << "-- <time value>\n" <<
+                "-- del\n" <<
+                "-- exit\n";
     }
     else if (current_status == "pre-launch_window->delete")
     {
@@ -352,12 +364,17 @@ void system_configuration::print()
     else if (current_status == "model")
     {
         cout << model_name << " was successfully modeled\n";
+        if (is_out_of_borders)
+        {
+            cout.precision(3);
+            cout << "\nNote: at t = " << .01 * x.size() << " particle flew out of trap\n\n";
+        }
 
-        cout << "write:\n" <<
-                "1) 3d (plot)\n" <<
-                "2) <two coordinates for projection>\n" <<
-                "3) <one coordinate for time dependency>\n" <<
-                "4) exit\n";
+        cout << "-- 3d (plot)\n" <<
+                "-- <two coordinates for projection>\n" <<
+                "-- <one coordinate for time dependency>\n" <<
+                "-- back\n" <<
+                "-- menu\n";
     }
     cout << "penning> ";
     return;
@@ -414,8 +431,8 @@ void system_configuration::get_request()
     }
     else if (current_status == "main_menu")
     {
-        int i = -1;
-        if (income_command == std::to_string(configurations.size() + 2) || income_command == "Exit" || income_command == "exit")
+        
+        if (income_command == "Exit" || income_command == "exit")
         {
             current_status = "initial_menu";
             return;
@@ -426,7 +443,7 @@ void system_configuration::get_request()
             return;
         }
         try{
-            i = std::stoi(income_command);
+            int i = std::stoi(income_command);
             if (i >= 1 && i <= configurations.size())
             {
                 model_name = configurations[i - 1];
@@ -489,7 +506,10 @@ void system_configuration::get_request()
         }
         else if (income_command == "6" || income_command == "Exit" || income_command == "exit")
         {
-            current_status = "new_config->exit";
+            if (is_config_changed())
+                current_status = "new_config->exit";
+            else
+                current_status = "main_menu";
             return;
         }
         else
@@ -560,30 +580,6 @@ void system_configuration::get_request()
     }
     else if (current_status == "new_config->E_field")
     {
-        if (income_command == "static" || income_command == "Static")
-        {
-            current_status = "new_config->E_field->static";
-            return;
-        }
-        else if (income_command == "rotating" || income_command == "Rotating")
-        {
-            current_status = "new_config->E_field->rotating";
-            return;
-        }
-        else if (income_command == "exit" || income_command == "Exit")
-        {
-            current_status = "new_config";
-            return;
-        }
-        else
-        {
-            clear = false;
-            incorrect_input = true;
-            return;
-        }
-    }
-    else if (current_status == "new_config->E_field->static")
-    {
         if (income_command == "exit" || income_command == "Exit")
         {
             current_status = "new_config";
@@ -599,43 +595,7 @@ void system_configuration::get_request()
             incorrect_input = true;
             return;
         }
-        if (income_command.substr(0,5) == "prop " && par > 0)
-        {
-            model_config["E_C"] = par;
-            current_status = "new_config";
-            return;
-        }
-        else if (income_command.substr(0,8) == "ellipse " && par >= -1 && par <= 1)
-        {
-            model_config["E_EPS"] = par;
-            current_status = "new_config";
-            return;
-        }
-        else
-        {
-            clear = false;
-            incorrect_input = true;
-            return;
-        }
-    }
-    else if (current_status == "new_config->E_field->rotating")
-    {
-        if (income_command == "exit" || income_command == "Exit")
-        {
-            current_status = "new_config";
-            return;
-        }
-        double par = 0;
-        try {
-            int i = income_command.find(' ');
-            par = std::stod(income_command.substr(i+1, income_command.size() - i));
-        }
-        catch (...) {
-            clear = false;
-            incorrect_input = true;
-            return;
-        }
-        if (income_command.substr(0,5) == "prop " && par != 0)
+        if (income_command.substr(0,5) == "prop " && par >= 0)
         {
             model_config["E_C"] = par;
             current_status = "new_config";
@@ -797,6 +757,11 @@ void system_configuration::get_request()
     }
     else if (current_status == "new_config->geometry->size")
     {
+        if (income_command == "exit" || income_command == "Exit")
+        {
+            current_status = "new_config";
+            return;
+        }
         double par = -1;
         try {
             par = std::stod(income_command);
@@ -1051,6 +1016,51 @@ void system_configuration::get_request()
             matplot::show();
             return;
         }
+        else if (income_command == "xz" || income_command == "XZ")
+        {
+            matplot::xlabel("x");
+            matplot::ylabel("z");
+            matplot::grid(true);
+            matplot::plot(x, z);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "yx" || income_command == "YX")
+        {
+            matplot::xlabel("y");
+            matplot::ylabel("x");
+            matplot::grid(true);
+            matplot::plot(y, x);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "yz" || income_command == "YZ")
+        {
+            matplot::xlabel("y");
+            matplot::ylabel("z");
+            matplot::grid(true);
+            matplot::plot(y, z);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "zx" || income_command == "ZX")
+        {
+            matplot::xlabel("z");
+            matplot::ylabel("x");
+            matplot::grid(true);
+            matplot::plot(z, x);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "zy" || income_command == "ZY")
+        {
+            matplot::xlabel("z");
+            matplot::ylabel("y");
+            matplot::grid(true);
+            matplot::plot(z, y);
+            matplot::show();
+            return;
+        }
         else if (income_command == "x" || income_command == "X")
         {
             matplot::xlabel("t");
@@ -1060,9 +1070,33 @@ void system_configuration::get_request()
             matplot::show();
             return;
         }
-        else if (income_command == "exit" || income_command == "Exit")
+        else if (income_command == "y" || income_command == "Y")
+        {
+            matplot::xlabel("t");
+            matplot::ylabel("y");
+            matplot::grid(true);
+            matplot::plot(t, y);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "z" || income_command == "Z")
+        {
+            matplot::xlabel("t");
+            matplot::ylabel("z");
+            matplot::grid(true);
+            matplot::plot(t, z);
+            matplot::show();
+            return;
+        }
+        else if (income_command == "back" || income_command == "Back")
         {
             current_status = "pre-launch_window";
+            return;
+        }
+        else if (income_command == "menu" || income_command == "Menu")
+        {
+            reset_config();
+            current_status = "main_menu";
             return;
         }
         else
@@ -1097,6 +1131,5 @@ void system_configuration::stop()
         out << configurations[i] << endl;
     }
     out.close();
-
     return;
 }

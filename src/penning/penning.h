@@ -13,14 +13,11 @@ void execute_penning();
 class system_configuration final
 {
 private:
-    std::string current_status;
-
     std::map<std::string, double> model_config;
-    //std::multimap<std::string, std::string> request_dependencies;
     std::vector<std::string> configurations;
 
-    bool clear = true, incorrect_input = false, print_ = true;
-    std::string income_command, model_name = "unknown";
+    bool clear = true, incorrect_input = false, print_ = true, is_out_of_borders = false;
+    std::string current_status, income_command, model_name = "unknown";
     double time = 0;
     space<double> model_space = new_space<double>();
     std::vector<double> x, y, z, vx, vy, vz, t;
@@ -32,6 +29,7 @@ private:
     void read_saved_configurations();
     void read_configuration(std::string);
     void reset_config();
+    bool is_config_changed();
     void print_model();
     void save_model(std::ofstream&);
     void print();
