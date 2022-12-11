@@ -11,11 +11,12 @@ using std::cout;
 using std::endl;
 #define clear_cmd system("clear");
 
+
 system_configuration::system_configuration()
 {
     //this->read_request_dependencies();
-    this->read_saved_configurations();
     current_status = "initial_menu";
+    this->read_saved_configurations();
 
     //double 
      //       CHARGE = 1, MASS = 1, 
@@ -95,31 +96,32 @@ void system_configuration::read_saved_configurations()
     while(in)
     {
         std::getline(in, config);
-        configurations.push_back(config);
+        if (config != "")
+            configurations.push_back(config);
     }
     in.close();
 }
 
 void system_configuration::print_model()
 {
-    cout.precision(6);
+    cout.precision(3);
     cout << //scientific()
             "Particle:\n" <<
-            "Mass:\t" << model_config["MASS"] << endl <<
-            "Charge:\t" << model_config["CHARGE"] << endl <<
+            "Mass:\t\t\t" << model_config["MASS"] << endl <<
+            "Charge:\t\t\t" << model_config["CHARGE"] << endl <<
             "Electrical field:\n" <<
             "Proportionality factor:\t" << model_config["E_C"] << endl <<
             "Ellipticity parameter:\t" << model_config["E_EPS"] << endl <<
-            "Static:\t" << ((model_config["ROT_AMPL"] == 0 && model_config["ROT_FREQ"] == 0) ? "YES" : "NO") << endl <<
+            "Static:\t\t\t" << ((model_config["ROT_AMPL"] == 0 && model_config["ROT_FREQ"] == 0) ? "YES" : "NO") << endl <<
             "Rotation amplitude:\t" << model_config["ROT_AMPL"] << endl <<
             "Rotation frequency:\t" << model_config["ROT_FREQ"] << endl <<
-            "Magnetic field:\n" <<
+            "Magnetic field:\t\t" <<
             "(" << model_config["M_X"] << ", " << model_config["M_Y"] << ", " << model_config["M_Z"] << ")\n" <<
-            "Geomtry:\n" <<
-            "Detector size:\t" << model_config["SIZE"] << endl <<
+            "Geometry:\n" <<
+            "Detector size:\t\t" << model_config["SIZE"] << endl <<
             "Particle posotion:\t" << 
             "(" << model_config["X"] << ", " << model_config["Y"] << ", " << model_config["Z"] << ")\n" <<
-            "Particle velocity" <<
+            "Particle velocity:\t" <<
             "(" << model_config["V_X"] << ", " << model_config["V_Y"] << ", " << model_config["V_Z"] << ")\n\n";
     return;
 }
@@ -148,23 +150,22 @@ void system_configuration::save_model(std::ofstream& out)
 void system_configuration::print()
 {
     if (clear)
+    {
         clear_cmd;
+    }
     if (incorrect_input)
     {
-        cout << "Incorret input, please, try again\n\n";
+        cout << "Incorret input, please, try again\n";
     }
     else if (current_status == "initial_menu")
     {
         cout << 
             "Write\n" <<
-            "start\n" <<
-            "exit\n";
+            "1) start\n" <<
+            "2) exit\n";
     }
     else if (current_status == "main_menu")
     {
-        std::string config_line;
-        std::ifstream in;
-
         cout << "Choose configuration:\n\n";
 
         for (int i = 0; i < configurations.size(); ++i)
@@ -176,7 +177,7 @@ void system_configuration::print()
     }
     else if (current_status == "new_config")
     {
-        cout << "Variables:\n\n" << endl;
+        cout << "Variables:\n" << endl;
         print_model();
         cout << "Change:\n" <<
                 "1) Particle\n" <<
@@ -211,17 +212,17 @@ void system_configuration::print()
     {
         cout << "Write:\n" << 
                 "prop <value> (must be > 0)\n" <<
-                "ellips <value> (lies in [-1,1])\n" <<
-                "ampl <value>\n (must be > 0)" <<
+                "ellipse <value> (lies in [-1,1])\n" <<
+                "ampl <value> (must be > 0)\n" <<
                 "freq <value> (must be > 0)\n" <<
                 "exit\n";
     }
     else if (current_status == "new_config->M_field")
     {
         cout << "Write:\n" << 
-                "cartesian\n" <<
-                "spherical\n" <<
-                "exit\n";
+                "1) cartesian\n" <<
+                "2) spherical\n" <<
+                "3) exit\n";
     }
     else if (current_status == "new_config->M_field->cartesian")
     {
@@ -233,16 +234,16 @@ void system_configuration::print()
     {
         cout << "Write:\n" << 
                 "<M_r> <M_theta> <M_phi>\n" <<
-                "(angles are in degrees)"
+                "(angles are in degrees)\n" <<
                 "exit\n";
     }
     else if (current_status == "new_config->geometry")
     {
         cout << "Write:\n" << 
-                "size\n" <<
-                "coord\n" <<
-                "vel\n" <<
-                "exit\n";
+                "1) size\n" <<
+                "2) coord\n" <<
+                "3) vel\n" <<
+                "4) exit\n";
     }
     else if (current_status == "new_config->geometry->size")
     {
@@ -275,8 +276,8 @@ void system_configuration::print()
         cout << "Configuration: " << model_name << endl;
         print_model();
         cout << "Write:\n" <<
-                "start\n" <<
-                "exit\n";
+                "1) start\n" <<
+                "2) exit\n";
     }
     else if (current_status == "model")
     {
@@ -294,15 +295,15 @@ void system_configuration::print()
 
 void system_configuration::get_request()
 {
-    cin >> income_command;
-    cout << endl;
+    std::getline(cin, income_command);
+    //cout << endl;
 
     incorrect_input = false;
     clear = true;
 
     {
         int last = income_command.find_last_not_of(' ') == std::string::npos ? 0 : income_command.find_last_not_of(' ');
-        income_command = income_command.substr(0, last);
+        income_command = income_command.substr(0, last + 1);
         int first = income_command.find_first_not_of(' ') == std::string::npos ? 0 : income_command.find_first_not_of(' ');
         income_command = income_command.substr(first, income_command.size() - first + 1);
     }
@@ -311,13 +312,24 @@ void system_configuration::get_request()
         clear = false;
         return;
     }
-    else if (income_command == "initial_menu")
+    else if (income_command == ".q")
     {
-        if (income_command == "start")
+        current_status = "exit";
+        return;
+    }
+    else if (income_command == "clear" || income_command == "clean")
+    {
+        clear = true;
+        return;
+    }
+    else if (current_status == "initial_menu")
+    {
+        if (income_command == "1" || income_command == "start")
         {
             current_status = "main_menu";
+            return;
         }
-        else if (income_command == "exit")
+        else if (income_command == "2" || income_command == "exit")
         {
             current_status = "exit";
             return;
@@ -326,9 +338,10 @@ void system_configuration::get_request()
         {
             clear = false;
             incorrect_input = true;
+            return;
         }
     }
-    else if (income_command == "main_menu")
+    else if (current_status == "main_menu")
     {
         int i = -1;
         if (income_command == std::to_string(configurations.size() + 2) || income_command == "Exit" || income_command == "exit")
@@ -370,7 +383,7 @@ void system_configuration::get_request()
         incorrect_input = true;
         return;
     }
-    else if (income_command == "new_config")
+    else if (current_status == "new_config")
     {
         if (income_command == "1" || income_command == "Particle" || income_command == "particle")
         {
@@ -409,7 +422,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->particle")
+    else if (current_status == "new_config->particle")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -418,7 +431,7 @@ void system_configuration::get_request()
         }
         double par = 0;
         try {
-            int i = income_command.find(' ');
+            int i = income_command.find_last_of(' ');
             par = std::stod(income_command.substr(i+1, income_command.size() - i));
             if (par == 0)
                 throw "parameter can't be 0";
@@ -447,7 +460,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->E_field")
+    else if (current_status == "new_config->E_field")
     {
         if (income_command == "static" || income_command == "Static")
         {
@@ -471,7 +484,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->E_field->static")
+    else if (current_status == "new_config->E_field->static")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -507,7 +520,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->E_field->rotating")
+    else if (current_status == "new_config->E_field->rotating")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -555,19 +568,19 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->M_field")
+    else if (current_status == "new_config->M_field")
     {
-        if (income_command == "cartesian")
+        if (income_command == "1" || income_command == "cartesian")
         {
             current_status = "new_config->M_field->cartesian";
             return;
         }
-        else if (income_command == "spherical")
+        else if (income_command == "2" || income_command == "spherical")
         {
             current_status = "new_config->M_field->spherical";
             return;
         }
-        else if (income_command == "exit" || income_command == "Exit")
+        else if (income_command == "3" || income_command == "exit" || income_command == "Exit")
         {
             current_status = "new_config";
             return;
@@ -579,7 +592,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->M_field->cartesian")
+    else if (current_status == "new_config->M_field->cartesian")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -589,7 +602,6 @@ void system_configuration::get_request()
         else
         {
             try {
-                double x, y, z;
                 std::string s1, s2, s3;
                 int i = 0;
                 while (income_command[i] != ' ' && i < income_command.size())
@@ -605,6 +617,9 @@ void system_configuration::get_request()
                 model_config["M_X"] = std::stod(s1);
                 model_config["M_Y"] = std::stod(s2);
                 model_config["M_Z"] = std::stod(s3);
+
+                current_status = "new_config";
+                return;
             }
             catch (...) {
                 clear = false;
@@ -613,7 +628,7 @@ void system_configuration::get_request()
             }
         }
     }
-    else if (income_command == "new_config->M_field->spherical")
+    else if (current_status == "new_config->M_field->spherical")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -639,9 +654,12 @@ void system_configuration::get_request()
                 r     = std::stod(s1);
                 theta = std::stod(s2);
                 phi   = std::stod(s3);
-                model_config["M_X"] = r * sin(theta) * cos(phi);
-                model_config["M_Y"] = r * sin(theta) * sin(phi);
-                model_config["M_Z"] = r * cos(theta);
+                model_config["M_X"] = r * sin(theta * 180 / M_PI) * cos(phi * 180 / M_PI);
+                model_config["M_Y"] = r * sin(theta * 180 / M_PI) * sin(phi * 180 / M_PI);
+                model_config["M_Z"] = r * cos(theta * 180 / M_PI);
+
+                current_status = "new_config";
+                return;
             }
             catch (...) {
                 clear = false;
@@ -650,24 +668,24 @@ void system_configuration::get_request()
             }
         }
     }
-    else if (income_command == "new_config->geometry")
+    else if (current_status == "new_config->geometry")
     {
-        if (income_command == "size" || income_command == "Size")
+        if (income_command == "1" || income_command == "size" || income_command == "Size")
         {
             current_status = "new_config->geometry->size";
             return;
         }
-        else if (income_command == "coord" || income_command == "Coord" || income_command == "coordinate" || income_command == "Coordinate")
+        else if (income_command == "2" || income_command == "coord" || income_command == "Coord" || income_command == "coordinate" || income_command == "Coordinate")
         {
             current_status = "new_config->geometry->coordinate";
             return;
         }
-        else if (income_command == "velocity" || income_command == "Velovity" || income_command == "vel" || income_command == "Vel")
+        else if (income_command == "3" || income_command == "velocity" || income_command == "Velovity" || income_command == "vel" || income_command == "Vel")
         {
             current_status = "new_config->geometry->velocity";
             return;
         }
-        else if (income_command == "exit" || income_command == "Exit")
+        else if (income_command == "4" || income_command == "exit" || income_command == "Exit")
         {
             current_status = "new_config";
             return;
@@ -679,7 +697,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->geometry->size")
+    else if (current_status == "new_config->geometry->size")
     {
         double par = -1;
         try {
@@ -697,7 +715,7 @@ void system_configuration::get_request()
             return;
         }
     }
-    else if (income_command == "new_config->geometry->coordinate")
+    else if (current_status == "new_config->geometry->coordinate")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -723,6 +741,9 @@ void system_configuration::get_request()
                 model_config["X"] = std::stod(s1);
                 model_config["Y"] = std::stod(s2);
                 model_config["Z"] = std::stod(s3);
+
+                current_status = "new_config";
+                return;
             }
             catch (...) {
                 clear = false;
@@ -731,7 +752,7 @@ void system_configuration::get_request()
             }
         }
     }
-    else if (income_command == "new_config->geometry->velocity")
+    else if (current_status == "new_config->geometry->velocity")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
@@ -757,6 +778,9 @@ void system_configuration::get_request()
                 model_config["V_X"] = std::stod(s1);
                 model_config["V_Y"] = std::stod(s2);
                 model_config["V_Z"] = std::stod(s3);
+
+                current_status = "new_config";
+                return;
             }
             catch (...) {
                 clear = false;
@@ -765,14 +789,14 @@ void system_configuration::get_request()
             }
         }
     }
-    else if (income_command == "new_config->save")
+    else if (current_status == "new_config->save")
     {
         if (income_command == "exit" || income_command == "Exit")
         {
             current_status = "new_config";
             return;
         }
-        std::ofstream out("saved_configurations/"+income_command+".txt");
+        std::ofstream out("src/penning/saved_configurations/"+income_command+".txt");
         if (!out.good())
         {
             out.close();
@@ -786,7 +810,7 @@ void system_configuration::get_request()
         current_status = "main_menu";
         return;
     }
-    else if (income_command == "new_config->exit")
+    else if (current_status == "new_config->exit")
     {
         if (income_command == "y" || income_command == "yes" || income_command == "Y" || income_command == "Yes")
         {
@@ -816,7 +840,43 @@ void system_configuration::get_request()
 
 void system_configuration::stop()
 {
-    std::ofstream out("saved_configurations.txt");
+    clear_cmd;
+
+    std::ifstream in("src/penning/saved_configurations.txt");
+    if (!in.good())
+    {
+        in.close();
+        cout << "Cannot open saved_configurations.txt\nFATAL ERROR\n";
+        return;
+    }
+
+    std::string file;
+    bool found;
+    while(in)
+    {
+        found = false;
+        std::getline(in, file);
+        if (file == "")
+            continue;
+        for (int i = 0; i < configurations.size(); ++i)
+            found |= (file == configurations[i]);
+        if (!found)
+        {
+            try {
+                std::string s = "rm src/penning/"+file+".txt";
+                char a[s.size()];
+                for (int i = 0; i < s.size(); ++i)
+                    a[i] = s[i];
+                system(a);
+            }
+            catch (...) {
+                cout << "Cannot run 'rm src/penning/" << file << ".txt'\nFATAL ERROR\n";
+                return;
+            }
+        }
+    }
+
+    std::ofstream out("src/penning/saved_configurations.txt");
     if (!out.good())
     {
         out.close();
@@ -829,47 +889,5 @@ void system_configuration::stop()
     }
     out.close();
 
-    try {
-        system("ls > src/penning/ls_list.txt");
-    }
-    catch (...) {
-        cout << "Cannot run 'ls > src/penning/ls_list.txt'\nFATA ERROR\n";
-        return
-    }
-
-    std::ifstream in("src/penning/ls_list.txt");
-    if (!in.good())
-    {
-        cout << "Cannot open ls_list.txt\nFATAL ERROR\n";
-        return;
-    }
-
-    std::string file;
-    bool found;
-    while(in)
-    {
-        found = false;
-        std::getline(in, file);
-        for (int i = 0; i < configuration.size(); ++i)
-            found &= (file == configuration[i]);
-        if (!found)
-        {
-            try {
-                system("rm src/penning/"+file+".txt");
-            }
-            catch (...) {
-                cout << "Cannot run 'rm src/penning/" << file << ".txt'\nFATAL ERROR\n";
-                return;
-            }
-        }
-    }
-
-    try {
-        system("rm src/penning/ls_list.txt")
-    }
-    catch (...) {
-        cout << "Cannot run 'rm src/penning/ls_list.txt'\nFATA ERROR\n";
-        return
-    }
     return;
 }

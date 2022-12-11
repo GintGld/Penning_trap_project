@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+void execute_penning();
+
 class system_configuration final
 {
 private:
@@ -15,7 +17,7 @@ private:
     //std::multimap<std::string, std::string> request_dependencies;
     std::vector<std::string> configurations;
 
-    bool clear, incorrect_input;
+    bool clear = true, incorrect_input = false;
     std::string income_command, model_name = "unknown";
 
     system_configuration();
@@ -27,7 +29,7 @@ private:
     void print();
     void get_request();
     void stop();
-
+    
     friend void execute_penning();
 };
 
