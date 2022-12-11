@@ -39,7 +39,8 @@ public:
     void set_M_field(field<T>);
     void add_to_history(narray<vector3d<T> >);
     void solve(T, T, std::string, unsigned);
-    int write(std::string);
+    int write_vectors(std::string);
+    int write_T(std::string);
     void clear();
 
     // Function for constructing custom space
@@ -205,7 +206,7 @@ void space<T>::solve(T time, T dt, std::string type, unsigned N_repeat)
 }
 
 template<typename T>
-int space<T>::write(std::string file)
+int space<T>::write_vectors(std::string file)
 {
     std::ofstream out(file+".binary", std::ios::binary);
 
@@ -216,6 +217,27 @@ int space<T>::write(std::string file)
     {
         out.write((char*) &history[i][0], sizeof(vector3d<T>));
         out.write((char*) &history[i][1], sizeof(vector3d<T>));
+    }
+    out.close();
+    return EXIT_SUCCESS;
+}
+
+template <typename T>
+int space<T>::write_T(std::string file)
+{
+    std::ofstream out(file+".binary", std::ios::binary);
+
+    if(!out.good())
+        return EXIT_FAILURE;
+
+    for (unsigned i = 0; i < history.size(); ++i)
+    {
+        out.write((char*) &history[i][0].x(), sizeof(T));
+        out.write((char*) &history[i][0].y(), sizeof(T));
+        out.write((char*) &history[i][0].z(), sizeof(T));
+        out.write((char*) &history[i][1].x(), sizeof(T));
+        out.write((char*) &history[i][1].y(), sizeof(T));
+        out.write((char*) &history[i][1].z(), sizeof(T));
     }
     out.close();
     return EXIT_SUCCESS;
