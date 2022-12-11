@@ -191,7 +191,7 @@ void space<T>::solve(T time, T dt, std::string type, unsigned N_repeat)
 {
     this->add_to_history(narray<vector3d<T> > {P.get_position(), P.get_velocity()});
     unsigned N = (unsigned)(time / dt);
-    for (unsigned i = 0; i < N; ++i)
+    for (unsigned i = 0; i <= N; ++i)
     {
         make_step(P, *this, static_cast<T>(i)*dt, dt, type, N_repeat);
     }
