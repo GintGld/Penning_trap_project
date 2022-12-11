@@ -4,13 +4,13 @@
 #include <map>
 
 #include "penning.h"
-#include "../phys/phys.h"
+#include "phys/phys.h"
+#include "matplot/matplot.h"
 
 using std::cin;
 using std::cout;
 using std::endl;
 #define clear_cmd system("clear");
-
 
 system_configuration::system_configuration()
 {
@@ -24,22 +24,7 @@ system_configuration::system_configuration()
        //     M_X = 0, M_Y = 0, M_Z = 10, 
         //    SIZE = 20, X = 1, Y = 0, Z = 0, VX = 0, VY = 1, VZ = 0;
     
-    model_config["CHARGE"] = 1;
-    model_config["MASS"] = 1;
-    model_config["E_C"] = 1;
-    model_config["E_EPS"] = 0;
-    model_config["ROT_AMPL"] = 0;
-    model_config["ROT_FREQ"] = 0;
-    model_config["M_X"] = 0;
-    model_config["M_Y"] = 0;
-    model_config["M_Z"] = 10;
-    model_config["SIZE"] = 20;
-    model_config["X"] = 1;
-    model_config["Y"] = 0;
-    model_config["Z"] = 0;
-    model_config["V_X"] = 0;
-    model_config["V_Y"] = 1;
-    model_config["V_Z"] = 0;
+    reset_config();
 }
 
 void execute_penning()
@@ -54,35 +39,6 @@ void execute_penning()
     system_status.stop();
     return;
 }
-
-/*void system_configuration::read_request_dependencies()
-{
-    std::string request_line, key_w, val_w;
-    std::ifstream in("src/penning/request_dependencies.txt");
-
-    if(!in.good())
-    {
-        std::cout << "Error in reading request_dependencies.txt\n";
-        return;
-    }
-
-    while(in)
-    {
-        std::getline(in, request_line);
-        if (request_line == "")
-            continue;
-        key_w = request_line.substr(0, request_line.find("->") - 1);
-        val_w = request_line.substr(request_line.find("->") + 3, request_line.size() - request_line.find("->") - 2);
-        //std::cout << key_w << " " << val_w << std::endl;
-        request_dependencies.insert(std::make_pair(key_w, val_w));
-    }
-    in.close();
-
-    for (std::multimap<std::string, std::string>::iterator it=request_dependencies.begin(); it!=request_dependencies.end(); ++it)
-        std::cout << it->first << ' ' << it->second << std::endl;
-
-    return;
-}*/
 
 void system_configuration::read_saved_configurations()
 {
@@ -102,22 +58,76 @@ void system_configuration::read_saved_configurations()
     in.close();
 }
 
+void system_configuration::read_configuration(std::string file)
+{
+    std::ifstream in("src/penning/saved_configurations/"+file+".txt");
+    if (!in.good())
+    {
+        in.close();
+        cout << "Can't open " << file << ".txt" << endl << "FATAL ERROR\n";
+        return;
+    }
+    std::string line;
+    try {
+        while(in)
+        {
+            std::getline(in, line);
+            std::string s1 = line.substr(0, line.find(" : "));
+            std::string s2 = line.substr(line.find(" : ") + 3, line.size() - line.find(" : ") - 2);
+            model_config[s1] = std::stod(s2);
+        }
+        in.close();
+        return;
+    }
+    catch (...) {
+        in.close();
+        cout << "Can't open " << file << ".txt" << endl << "FATAL ERROR\n";
+        return;
+    }
+    in.close();
+    return;
+}
+
+void system_configuration::reset_config()
+{
+    model_config["CHARGE"] = 1;
+    model_config["MASS"] = 1;
+    model_config["E_C"] = 1;
+    model_config["E_EPS"] = 0;
+    model_config["ROT_AMPL"] = 0;
+    model_config["ROT_FREQ"] = 0;
+    model_config["M_X"] = 0;
+    model_config["M_Y"] = 0;
+    model_config["M_Z"] = 10;
+    model_config["SIZE"] = 20;
+    model_config["X"] = 1;
+    model_config["Y"] = 0;
+    model_config["Z"] = 0;
+    model_config["V_X"] = 0;
+    model_config["V_Y"] = 1;
+    model_config["V_Z"] = 0;
+    return;
+}
+
 void system_configuration::print_model()
 {
     cout.precision(3);
-    cout << //scientific()
-            "Particle:\n" <<
+    cout << "----------------------------------" << endl <<
+            "Particle\n" <<
             "Mass:\t\t\t" << model_config["MASS"] << endl <<
             "Charge:\t\t\t" << model_config["CHARGE"] << endl <<
-            "Electrical field:\n" <<
+            "----------------------------------" << endl << 
+            "Electrical field\n" <<
             "Proportionality factor:\t" << model_config["E_C"] << endl <<
             "Ellipticity parameter:\t" << model_config["E_EPS"] << endl <<
             "Static:\t\t\t" << ((model_config["ROT_AMPL"] == 0 && model_config["ROT_FREQ"] == 0) ? "YES" : "NO") << endl <<
             "Rotation amplitude:\t" << model_config["ROT_AMPL"] << endl <<
             "Rotation frequency:\t" << model_config["ROT_FREQ"] << endl <<
-            "Magnetic field:\t\t" <<
+            "----------------------------------" << endl << 
+            "Magnetic field\t\t" <<
             "(" << model_config["M_X"] << ", " << model_config["M_Y"] << ", " << model_config["M_Z"] << ")\n" <<
-            "Geometry:\n" <<
+            "----------------------------------" << endl << 
+            "Geometry\n" <<
             "Detector size:\t\t" << model_config["SIZE"] << endl <<
             "Particle posotion:\t" << 
             "(" << model_config["X"] << ", " << model_config["Y"] << ", " << model_config["Z"] << ")\n" <<
@@ -149,6 +159,11 @@ void system_configuration::save_model(std::ofstream& out)
 
 void system_configuration::print()
 {
+    if (!print_)
+    {
+        cout << "penning> ";
+        return;
+    }
     if (clear)
     {
         clear_cmd;
@@ -177,7 +192,7 @@ void system_configuration::print()
     }
     else if (current_status == "new_config")
     {
-        cout << "Variables:\n" << endl;
+        cout << "Variables:" << endl;
         print_model();
         cout << "Change:\n" <<
                 "1) Particle\n" <<
@@ -267,6 +282,11 @@ void system_configuration::print()
     {
         cout << "Write the name\n";
     }
+    else if (current_status == "new_config->save->rewrite")
+    {
+        cout << "File with this name is already exist.\n" <<
+                "Do you want to rewrite? [y/n]\n";
+    }
     else if (current_status == "new_config->exit")
     {
         cout << "Are you sure you want to exit and reset configuration? [y/n]\n";
@@ -277,17 +297,22 @@ void system_configuration::print()
         print_model();
         cout << "Write:\n" <<
                 "1) start\n" <<
-                "2) exit\n";
+                "2) delete\n" <<
+                "3) exit\n";
+    }
+    else if (current_status == "pre-launch_window->delete")
+    {
+        cout << "Are you sure you want to delete this configuration? [y/n]\n";
     }
     else if (current_status == "model")
     {
         cout << "something about status maybe and warning if particle flew out of box\n";
 
         cout << "write:\n" <<
-                "3d plot\n" <<
-                "projection <two coordinates>\n" <<
-                "time <one coordinate>\n" <<
-                "exit\n";
+                "1) 3d plot\n" <<
+                "2) projection <two coordinates>\n" <<
+                "3) time <one coordinate>\n" <<
+                "4) exit\n";
     }
     cout << "penning> ";
     return;
@@ -300,6 +325,7 @@ void system_configuration::get_request()
 
     incorrect_input = false;
     clear = true;
+    print_ = true;
 
     {
         int last = income_command.find_last_not_of(' ') == std::string::npos ? 0 : income_command.find_last_not_of(' ');
@@ -309,6 +335,7 @@ void system_configuration::get_request()
     }
     if (income_command == "")
     {
+        print_ = false;
         clear = false;
         return;
     }
@@ -355,6 +382,7 @@ void system_configuration::get_request()
             {
                 model_name = configurations[i - 1];
                 current_status = "pre-launch_window";
+                read_configuration(configurations[i - 1]);
                 return;
             }
             else if (i == configurations.size() + 1)
@@ -796,6 +824,15 @@ void system_configuration::get_request()
             current_status = "new_config";
             return;
         }
+        model_name = income_command;
+        bool rewrite = false;
+        for (int i = 0; i < configurations.size(); ++i)
+            rewrite |= (income_command == configurations[i]);
+        if (rewrite)
+        {
+            current_status = "new_config->save->rewrite";
+            return;
+        }
         std::ofstream out("src/penning/saved_configurations/"+income_command+".txt");
         if (!out.good())
         {
@@ -810,11 +847,42 @@ void system_configuration::get_request()
         current_status = "main_menu";
         return;
     }
+    else if (current_status == "new_config->save->rewrite")
+    {
+        if (income_command == "y" || income_command == "yes" || income_command == "Y" || income_command == "Yes")
+        {
+            std::ofstream out("src/penning/saved_configurations/"+model_name+".txt");
+            if (!out.good())
+            {
+                out.close();
+                clear = false;
+                incorrect_input = true;
+                return;
+            }
+            save_model(out);
+            out.close();
+            current_status = "main_menu";
+            reset_config();
+            return;
+        }
+        else if (income_command == "n" || income_command == "no" || income_command == "N" || income_command == "No")
+        {
+            current_status = "new_config->save";
+            return;
+        }
+        else
+        {
+            clear = false;
+            incorrect_input = true;
+            return;
+        }
+    }
     else if (current_status == "new_config->exit")
     {
         if (income_command == "y" || income_command == "yes" || income_command == "Y" || income_command == "Yes")
         {
             current_status = "main_menu";
+            reset_config();
             return;
         }
         else if (income_command == "n" || income_command == "no" || income_command == "N" || income_command == "No")
@@ -829,6 +897,71 @@ void system_configuration::get_request()
             return;
         }
     }
+    else if (current_status == "pre-launch_window")
+    {
+        if (income_command == "1" || income_command == "start" || income_command == "Start")
+        {
+            current_status = "model";
+            return;
+        }
+        else if (income_command == "2" || income_command == "delete" || income_command == "Delete")
+        {
+            current_status = "pre-launch_window->delete";
+            return;
+        }
+        else if (income_command == "3" || income_command == "exit" || income_command == "Exit")
+        {
+            current_status = "main_menu";
+            reset_config();
+            return;
+        }
+        else
+        {
+            clear = false;
+            incorrect_input = true;
+            return;
+        }
+    }
+    else if (current_status == "pre-launch_window->delete")
+    {
+        if (income_command == "y" || income_command == "yes" || income_command == "Y" || income_command == "Yes")
+        {
+            int idx = -1;
+            for (int i = 0; i < configurations.size(); ++i)
+                if (model_name == configurations[i])
+                    idx = i;
+            configurations.erase(configurations.begin() + idx);
+            try {
+                std::string cmd_s = "rm src/penning/saved_configurations/"+model_name+".txt";
+                char cmd[cmd_s.size()];
+                for (int i = 0; i < cmd_s.size(); ++i)
+                    cmd[i] = cmd_s[i];
+                system(cmd);
+                current_status = "main_menu";
+                return;
+            }
+            catch (...) {
+                cout << "Cannot run rm src/penning/saved_configurations/"+model_name+".txt\nFATAL ERROR\n";
+                current_status = "pre-launch_window";
+                return;
+            }
+        }
+        else if (income_command == "n" || income_command == "no" || income_command == "N" || income_command == "No")
+        {
+            current_status = "pre-launch_window";
+            return;
+        }
+        else
+        {
+            clear = false;
+            incorrect_input = true;
+            return;
+        }
+    }
+    else if (current_status == "model")
+    {
+
+    }
     else
     {
         cout << "Unknown status. stopping program\n";
@@ -841,40 +974,6 @@ void system_configuration::get_request()
 void system_configuration::stop()
 {
     clear_cmd;
-
-    std::ifstream in("src/penning/saved_configurations.txt");
-    if (!in.good())
-    {
-        in.close();
-        cout << "Cannot open saved_configurations.txt\nFATAL ERROR\n";
-        return;
-    }
-
-    std::string file;
-    bool found;
-    while(in)
-    {
-        found = false;
-        std::getline(in, file);
-        if (file == "")
-            continue;
-        for (int i = 0; i < configurations.size(); ++i)
-            found |= (file == configurations[i]);
-        if (!found)
-        {
-            try {
-                std::string s = "rm src/penning/"+file+".txt";
-                char a[s.size()];
-                for (int i = 0; i < s.size(); ++i)
-                    a[i] = s[i];
-                system(a);
-            }
-            catch (...) {
-                cout << "Cannot run 'rm src/penning/" << file << ".txt'\nFATAL ERROR\n";
-                return;
-            }
-        }
-    }
 
     std::ofstream out("src/penning/saved_configurations.txt");
     if (!out.good())

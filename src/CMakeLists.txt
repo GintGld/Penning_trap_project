@@ -1,2 +1,3 @@
 add_subdirectory(phys)
 add_subdirectory(penning)
+add_subdirectory(matplotplusplus)

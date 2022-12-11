@@ -17,13 +17,15 @@ private:
     //std::multimap<std::string, std::string> request_dependencies;
     std::vector<std::string> configurations;
 
-    bool clear = true, incorrect_input = false;
+    bool clear = true, incorrect_input = false, print_ = true;
     std::string income_command, model_name = "unknown";
 
     system_configuration();
 
     void read_request_dependencies();
     void read_saved_configurations();
+    void read_configuration(std::string);
+    void reset_config();
     void print_model();
     void save_model(std::ofstream&);
     void print();
