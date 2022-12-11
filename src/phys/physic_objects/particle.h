@@ -16,8 +16,8 @@ struct particle final
 private:
     vector3d<T> r;
     vector3d<T> v;
-    const T charge, mass;
-    const std::string special_type;
+    T charge, mass;
+    std::string special_type;
     
     particle(vector3d<T>, vector3d<T>, T, T, std::string);
 
@@ -113,12 +113,10 @@ template<typename T>
 particle<T>
 particle<T>::operator=(const particle<T> p_new)
 {
-    if (charge != p_new.charge || mass != p_new.mass || special_type != p_new.special_type)
-    {
-        throw("Particles' parameters are not the same.\nThis operator can change only r-vector and v-vector");
-    }
     r = p_new.r;
     v = p_new.v;
+    charge = p_new.charge;
+    mass = p_new.mass;
     return *this;
 }
 
