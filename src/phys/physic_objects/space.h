@@ -20,13 +20,12 @@ class space final
 {
 private:
     // Inner Variables
-    vector3d<T> space_size;
     field<T> E, M;
     particle<T> P;
     narray<narray<vector3d<T> > > history;
     
     // Private Constructors
-    space(particle<T>, field<T>, field<T>, vector3d<T>);
+    space(particle<T>, field<T>, field<T>);
     space();
 
 public:
@@ -34,12 +33,10 @@ public:
     particle<T> get_particle() const;
     field<T>    get_E_field() const;
     field<T>    get_M_field() const;
-    vector3d<T> get_size() const;
     size_t get_history_size() const;
     void set_particle(particle<T>);
     void set_E_field(field<T>);
     void set_M_field(field<T>);
-    void set_size(vector3d<T>);
     void add_to_history(narray<vector3d<T> >);
     void solve(T, T, std::string, unsigned);
     int write(std::string);
@@ -47,7 +44,10 @@ public:
 
     // Function for constructing custom space
     template<typename T_new>
-    friend space<T_new> new_space(particle<T_new>, field<T_new>, field<T_new>, vector3d<T_new>);
+    friend space<T_new> new_space(particle<T_new>, field<T_new>, field<T_new>);
+
+    template<typename T_new>
+    friend space<T_new> new_space();
 
     // Function that make step of modeling for one particle
     template<typename T1>
@@ -64,11 +64,14 @@ public:
 ////////////////////////////////////////
 
 template<typename T>
-space<T>::space(particle<T> P, field<T> E, field<T> M, vector3d<T> space_size):
-    P(P), E(E), M(M), space_size(space_size) {}
+space<T>::space(particle<T> P, field<T> E, field<T> M):
+    P(P), E(E), M(M) {}
 
 template<typename T>
-space<T>::space() {}
+space<T>::space():
+    P(new_particle<T>(1, 1)),
+    E(new_field<T>()),
+    M(new_field<T>()) {}
 
 ////////////////////////////////////////
 //             Methods                //
@@ -90,12 +93,6 @@ template<typename T>
 field<T> space<T>::get_M_field() const
 {
     return M;
-}
-
-template<typename T>
-vector3d<T> space<T>::get_size() const
-{
-    return space_size;
 }
 
 template<typename T>
@@ -126,13 +123,6 @@ void space<T>::set_M_field(field<T> f)
 }
 
 template<typename T>
-void space<T>::set_size(vector3d<T> v)
-{
-    space_size = v;
-    return;
-}
-
-template<typename T>
 void space<T>::add_to_history(narray<vector3d<T> > v)
 {
     this->history.push_back(v);
@@ -152,19 +142,18 @@ void space<T>::clear()
 ////////////////////////////////////////
 
 template<typename T>
-space<T> new_space(particle<T> p, field<T> E, field<T> M, vector3d<T> space_size)
+space<T> new_space(particle<T> p, field<T> E, field<T> M)
 {
-    space<T> tmp(p, E, M, space_size);
+    space<T> tmp(p, E, M);
     return tmp;
 }
 
 template<typename T>
-space<T> new_space(field<T> E, field<T> M, vector3d<T> space_size)
+space<T> new_space(field<T> E, field<T> M)
 {
     space<T> tmp;
     tmp.set_E_field(E);
     tmp.set_M_field(M);
-    tmp.set_size(space_size);
     return tmp;
 }
 
@@ -218,7 +207,7 @@ void space<T>::solve(T time, T dt, std::string type, unsigned N_repeat)
 template<typename T>
 int space<T>::write(std::string file)
 {
-    std::ofstream out(file, std::ios::binary);
+    std::ofstream out(file+".binary", std::ios::binary);
 
     if(!out.good())
         return EXIT_FAILURE;
