@@ -11,7 +11,7 @@
 using std::cin;
 using std::cout;
 using std::endl;
-#define clear_cmd system("clear");
+#define clear_cmd system("clear")
 
 void execute_penning()
 {
@@ -29,15 +29,31 @@ void execute_penning()
 }
 
 template <typename T>
-field<T> penning_E(T C, T eps)
+field<T> penning_E(T wz, T eps, T A, T wr, particle<T> p)
 {
     field<T> tmp = new_field<T>();
-    tmp.set_function([C, eps](T t, vector3d<T> r){
-        return C * vector3d<T>(
-            (1 + eps) * r.x(),
-            (1 - eps) * r.y(),
-            -2 * r.z());
-    });
+    if (wz != 0)
+    {
+        auto stat =  [wz, eps, p](T t, vector3d<T> r){
+            return (.5 * wz * p.get_mass() / p.get_charge()) * vector3d<T>(
+                (1 + eps) * r.x(),
+                (1 - eps) * r.y(),
+                -2 * r.z());
+        };
+        tmp += new_field<T>(stat);
+    }
+    if (A != 0 && wr != 0)
+    {
+        auto rot = [A, wr, p](T t, vector3d<T> r){
+            return (A * r.z() * sqrt(r.x()*r.x() + r.y()*r.y()) * p.get_mass() / p.get_charge()) *
+            vector3d<T> (
+                -r.z() * cos(wr * t),
+                r.z() * sin(wr * t),
+                r.x() * cos(wr * t) - r.y() * sin(wr * t)
+            );
+        };
+        tmp += new_field<T>(rot);
+    }
     return tmp;
 }
 
@@ -129,10 +145,10 @@ void system_configuration::reset_config()
 {
     model_config["CHARGE"] = 1;
     model_config["MASS"] = 1;
-    model_config["E_C"] = 1;
-    model_config["E_EPS"] = 0;
-    model_config["ROT_AMPL"] = 0;
-    model_config["ROT_FREQ"] = 0;
+    model_config["FREQ_Z"] = 1;
+    model_config["ELL"] = 0;
+    model_config["AMPL"] = 0;
+    model_config["FREQ_R"] = 0;
     model_config["M_X"] = 0;
     model_config["M_Y"] = 0;
     model_config["M_Z"] = 10;
@@ -143,9 +159,8 @@ void system_configuration::reset_config()
     model_config["V_X"] = 0;
     model_config["V_Y"] = 1;
     model_config["V_Z"] = 0;
-    x.clear(); y.clear(); z.clear();
-    vx.clear(); vy.clear(); vz.clear();
-    t.clear();
+    time_step = .01;
+    n_repeat = 10;
     return;
 }
 
@@ -178,10 +193,10 @@ bool system_configuration::is_config_changed()
     bool f = false;
     f |= (model_config["CHARGE"] != 1);
     f |= (model_config["MASS"] != 1);
-    f |= (model_config["E_C"] != 1);
-    f |= (model_config["E_EPS"] != 0);
-    f |= (model_config["ROT_AMPL"] != 0);
-    f |= (model_config["ROT_FREQ"] != 0);
+    f |= (model_config["FREQ_Z"] != 1);
+    f |= (model_config["ELL"] != 0);
+    f |= (model_config["AMPL"] != 0);
+    f |= (model_config["FREQ_R"] != 0);
     f |= (model_config["M_X"] != 0);
     f |= (model_config["M_Y"] != 0);
     f |= (model_config["M_Z"] != 10);
@@ -200,24 +215,24 @@ void system_configuration::print_model()
     cout.precision(3);
     cout << "----------------------------------" << endl <<
             "Particle\n" <<
-            "Mass:\t\t\t" << model_config["MASS"] << endl <<
-            "Charge:\t\t\t" << model_config["CHARGE"] << endl <<
+            "Mass:\t\t\t\t" << model_config["MASS"] << endl <<
+            "Charge:\t\t\t\t" << model_config["CHARGE"] << endl <<
             "----------------------------------" << endl << 
             "Electrical field\n" <<
-            "Proportionality factor:\t" << model_config["E_C"] << endl <<
-            "Ellipticity parameter:\t" << model_config["E_EPS"] << endl <<
-            "Static:\t\t\t" << ((model_config["ROT_AMPL"] == 0 && model_config["ROT_FREQ"] == 0) ? "YES" : "NO") << endl <<
-            "Rotation amplitude:\t" << model_config["ROT_AMPL"] << endl <<
-            "Rotation frequency:\t" << model_config["ROT_FREQ"] << endl <<
+            "Axial fluctiation frequency:\t" << model_config["FREQ_Z"] << endl <<
+            "Ellipticity parameter:\t\t" << model_config["ELL"] << endl <<
+            "Static:\t\t\t\t" << ((model_config["AMPL"] == 0 && model_config["FREQ_R"] == 0) ? "YES" : "NO") << endl <<
+            "Rotation amplitude:\t\t" << model_config["AMPL"] << endl <<
+            "Rotation frequency:\t\t" << model_config["FREQ_R"] << endl <<
             "----------------------------------" << endl << 
-            "Magnetic field\t\t" <<
+            "Magnetic field\t\t\t" <<
             "(" << model_config["M_X"] << ", " << model_config["M_Y"] << ", " << model_config["M_Z"] << ")\n" <<
             "----------------------------------" << endl << 
             "Geometry\n" <<
-            "Detector size:\t\t" << model_config["SIZE"] << endl <<
-            "Particle posotion:\t" << 
+            "Detector size:\t\t\t" << model_config["SIZE"] << endl <<
+            "Particle posotion:\t\t" << 
             "(" << model_config["X"] << ", " << model_config["Y"] << ", " << model_config["Z"] << ")\n" <<
-            "Particle velocity:\t" <<
+            "Particle velocity:\t\t" <<
             "(" << model_config["V_X"] << ", " << model_config["V_Y"] << ", " << model_config["V_Z"] << ")\n" <<
             "----------------------------------" << endl;
     return;
@@ -228,10 +243,10 @@ void system_configuration::save_model(std::ofstream& out)
     out <<
         "CHARGE : "   << model_config["CHARGE"] << endl << 
         "MASS : "     << model_config["MASS"] << endl << 
-        "E_C : "      << model_config["E_C"] << endl << 
-        "E_EPS : "    << model_config["E_EPS"] << endl << 
-        "ROT_AMPL : " << model_config["ROT_AMPL"] << endl << 
-        "ROT_FREQ : " << model_config["ROT_FREQ"] << endl << 
+        "FREQ_Z : "      << model_config["FREQ_Z"] << endl << 
+        "ELL : "    << model_config["ELL"] << endl << 
+        "AMPL : " << model_config["AMPL"] << endl << 
+        "FREQ_R : " << model_config["FREQ_R"] << endl << 
         "M_X : "      << model_config["M_X"] << endl << 
         "M_Y : "      << model_config["M_Y"] << endl << 
         "M_Z : "      << model_config["M_Z"] << endl << 
@@ -250,12 +265,22 @@ void system_configuration::count(double time)
     model_space.set_particle( new_particle<double>(
         vector3d<double> (model_config["X"], model_config["Y"], model_config["Z"]),
         vector3d<double> (model_config["V_X"], model_config["V_Y"], model_config["V_Z"]),
-        abs(model_config["CHARGE"]), model_config["MASS"]));
-    model_space.set_E_field( penning_E<double>(model_config["E_C"], model_config["E_EPS"]));
+        model_config["CHARGE"], model_config["MASS"]));
+    model_space.set_E_field( penning_E<double>(
+        model_config["FREQ_Z"],
+        model_config["ELL"],
+        model_config["AMPL"],
+        model_config["FREQ_R"],
+        model_space.get_particle()));
     model_space.set_M_field( penning_M<double>(
         vector3d<double>(model_config["M_X"], model_config["M_Y"], model_config["M_Z"])));
 
-    model_space.solve(time, .01, "rk45", 10);
+    //if (model_config["AMPL"] == 0 && model_config["FREQ_R"] == 0)
+        n_repeat = (unsigned)(1000 * time_step);
+    //else
+    //    n_repeat = (unsigned)(50 * time * time_step);
+
+    model_space.solve(time, time_step, "rk45", n_repeat);
     model_space.write_T("src/penning/binary/"+model_name);
     model_space.clear();
 
@@ -264,13 +289,14 @@ void system_configuration::count(double time)
     t.clear();
 
     double* r = new double[6];
+    is_out_of_borders = false;
     std::ifstream in("src/penning/binary/"+model_name+".binary", std::ios::binary);
     if (!in.good())
     {
-        cout << "Cannot open src/penning/binaty/"<<model_name<<"\nFATAL ERROR\n";
+        cout << "Cannot open src/penning/binary/"<<model_name<<"\nFATAL ERROR\n";
         return;
     }
-    for (int i = 0; i <= (unsigned)(time / .01); ++i)
+    for (int i = 0; i <= (unsigned)(time / .01) && !is_out_of_borders; ++i)
     {
         for (int j = 0; j < 6; ++j)
             in.read((char*) &r[j], sizeof(double));
@@ -282,17 +308,12 @@ void system_configuration::count(double time)
         vz.push_back(r[5]);
         t.push_back((double)(.01 * i));
 
-        if (x[i] >= .5 * model_config["SIZE"] || x[i] <= -.5 * model_config["SIZE"])
-        {
-            is_out_of_borders = true;
-            break;
-        }
-        if (y[i] >= .5 * model_config["SIZE"] || y[i] <= -.5 * model_config["SIZE"])
-        {
-            is_out_of_borders = true;
-            break;
-        }
-        if (z[i] >= .5 * model_config["SIZE"] || z[i] <= -.5 * model_config["SIZE"])
+        if (2 * x[i] - model_config["SIZE"] >= 0 ||
+            2 * x[i] + model_config["SIZE"] <= 0 ||
+            2 * y[i] - model_config["SIZE"] >= 0 ||
+            2 * y[i] + model_config["SIZE"] <= 0 ||
+            2 * z[i] - model_config["SIZE"] >= 0 ||
+            2 * z[i] + model_config["SIZE"] <= 0)
         {
             is_out_of_borders = true;
             break;
@@ -300,6 +321,7 @@ void system_configuration::count(double time)
     }
     delete[] r;
     in.close();
+    return;
 }
 
 void system_configuration::print()
@@ -347,7 +369,10 @@ void system_configuration::print()
     }
     else if (current_status == "new_config->particle")
     {
-        cout << "-- electron\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- electron\n" <<
                 "-- positron\n" <<
                 "-- proton\n" <<
                 "-- mass <value>\n" <<
@@ -356,69 +381,103 @@ void system_configuration::print()
     }
     else if (current_status == "new_config->E_field")
     {
-        cout << "-- prop <value> (must be > 0)\n" <<
-                "-- ellipse <value> (lies in [-1,1])\n" <<
-                "-- ampl <value> (must be > 0)\n" <<
-                "-- freq <value> (must be > 0)\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- wz <value> (must be > 0)\n" <<
+                "-- ell <value> (lies in [-1,1])\n" <<
+                "-- amp <value> (must be > 0)\n" <<
+                "-- wr <value> (must be > 0)\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->M_field")
     {
-        cout << "1) cartesian\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "1) cartesian\n" <<
                 "2) spherical\n" <<
                 "3) exit\n";
     }
     else if (current_status == "new_config->M_field->cartesian")
     {
-        cout << "-- <M_x> <M_y> <M_z>\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- <M_x> <M_y> <M_z>\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->M_field->spherical")
     {
-        cout << "-- <M_r> <M_theta> <M_phi>\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- <M_r> <M_theta> <M_phi>\n" <<
                 "-- (angles are in degrees)\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->geometry")
     {
-        cout << "1) size\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "1) size\n" <<
                 "2) coordinate (coord)\n" <<
                 "3) velocity (vel)\n" <<
                 "4) exit\n";
     }
     else if (current_status == "new_config->geometry->size")
     {
-        cout << "-- <value>\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- <value>\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->geometry->coordinate")
     {
-        cout << "-- <X> <Y> <Z>\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- <X> <Y> <Z>\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->geometry->velocity")
     {
-        cout << "-- <V_x> <V_y> <V_z>\n" <<
+        cout << "Variables:" << endl;
+        print_model();
+        cout << "Choose:\n" <<
+                "-- <V_x> <V_y> <V_z>\n" <<
                 "-- exit\n";
     }
     else if (current_status == "new_config->save")
     {
+        cout << "Variables:" << endl;
+        print_model();
         cout << "Write the name\n";
     }
     else if (current_status == "new_config->save->rewrite")
     {
+        cout << "Variables:" << endl;
+        print_model();
         cout << "File with this name is already exist.\n" <<
                 "Do you want to rewrite? [y/n]\n";
     }
     else if (current_status == "new_config->exit")
     {
+        cout << "Variables:" << endl;
+        print_model();
         cout << "Are you sure you want to exit and reset configuration? [y/n]\n";
     }
     else if (current_status == "pre-launch_window")
     {
         cout << "Configuration: " << model_name << endl;
         print_model();
-        cout << "-- <time value>\n" <<
+        cout << "time step:\t\t\t" << time_step << endl <<
+                "----------------------------------" << endl <<
+                "Choose:\n" <<
+                "-- <time value>\n" <<
+                "-- step <time step>\n" <<
                 "-- del\n" <<
                 "-- exit\n";
     }
@@ -661,27 +720,27 @@ void system_configuration::get_request()
             incorrect_input = true;
             return;
         }
-        if (income_command.substr(0,5) == "prop " && par >= 0)
+        if (income_command.substr(0,3) == "wz " && par >= 0)
         {
-            model_config["E_C"] = par;
+            model_config["FREQ_Z"] = par;
             current_status = "new_config";
             return;
         }
-        else if (income_command.substr(0,8) == "ellipse " && par >= -1 && par <= 1)
+        else if (income_command.substr(0,4) == "ell " && par >= -1 && par <= 1)
         {
-            model_config["E_EPS"] = par;
+            model_config["ELL"] = par;
             current_status = "new_config";
             return;
         }
-        else if (income_command.substr(0,5) == "ampl " && par >= 0)
+        else if (income_command.substr(0,4) == "amp " && par >= 0)
         {
-            model_config["ROT_AMPL"] = par;
+            model_config["AMPL"] = par;
             current_status = "new_config";
             return;
         }
-        else if (income_command.substr(0,5) == "freq " && par >= 0)
+        else if (income_command.substr(0,3) == "wr " && par >= 0)
         {
-            model_config["ROT_FREQ"] = par;
+            model_config["FREQ_R"] = par;
             current_status = "new_config";
             return;
         }
@@ -904,9 +963,18 @@ void system_configuration::get_request()
                 s1 = income_command.substr(0, i + 1);
                 s2 = income_command.substr(i + 2, j - i - 1);
                 s3 = income_command.substr(j + 2, income_command.size() - j - 1);
-                model_config["V_X"] = std::stod(s1);
-                model_config["V_Y"] = std::stod(s2);
-                model_config["V_Z"] = std::stod(s3);
+                x = std::stod(s1);
+                y = std::stod(s2);
+                z = std::stod(s3);
+                if (sqrt(x*x + y*y + z*z) >= SPEED_OF_LIGHT)
+                {
+                    clear = false;
+                    incorrect_input = true;
+                    return;
+                }
+                model_config["V_X"] = x;
+                model_config["V_Y"] = y;
+                model_config["V_Z"] = z;
 
                 current_status = "new_config";
                 return;
@@ -1010,6 +1078,20 @@ void system_configuration::get_request()
             reset_config();
             current_status = "main_menu";
             return;
+        }
+        else if (income_command.substr(0, 5) == "step ")
+        {
+            try {
+                int i = income_command.find(' ');
+                cout << income_command.substr(i+1, income_command.size() - i) << endl;
+                time_step = std::stod(income_command.substr(i+1, income_command.size() - i));
+                return;
+            }
+            catch (...) {
+                clear = false;
+                incorrect_input = true;
+                return;
+            }
         }
         try {
             double time = std::stod(income_command);
@@ -1144,6 +1226,9 @@ void system_configuration::get_request()
         }
         else if (income_command == "back" || income_command == "Back")
         {
+            x.clear(); y.clear(); z.clear();
+            vx.clear(); vy.clear(); vz.clear();
+            t.clear();
             current_status = "pre-launch_window";
             return;
         }
@@ -1224,4 +1309,5 @@ void system_configuration::stop()
         return;
     }
     delete_binary_dir();
+    return;
 }
