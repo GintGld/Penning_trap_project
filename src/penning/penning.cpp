@@ -16,6 +16,7 @@ system_configuration::system_configuration()
 {
     read_saved_configurations();
     reset_config();
+    create_binary_dir();
     current_status = "initial_menu";
 }
 
@@ -36,20 +37,42 @@ void execute_penning()
 
 void system_configuration::read_saved_configurations()
 {
-    std::string config;
-    std::ifstream in("src/penning/saved_configurations.txt");
-    if (!in.good())
-    {
-        cout << "Error in opening saved_configurations.txt\n";
+    std::string name;
+    try {
+        system("ls src/penning/saved_configurations/ > src/penning/ls_list.txt");
+    }
+    catch (...) {
+        cout << "Cannot run ls src/penning/saved_configurations/ > src/penning/ls_list.txt\n";
         return;
     }
+    std::ifstream in("src/penning/ls_list.txt");
+    if (!in.good())
+    {
+        in.close();
+        cout << "Cannot open src/penning/ls_list.txt\n";
+        return;
+    }
+
     while(in)
     {
-        std::getline(in, config);
-        if (config != "")
-            configurations.push_back(config);
+        std::getline(in, name);
+        if (name == "")
+            continue;
+        if (name.substr(name.size() - 4, 4) == ".txt")
+        {
+            configurations.push_back(name.substr(0, name.size() - 4));
+        }
     }
+
     in.close();
+    try {
+        system("rm src/penning/ls_list.txt");
+    }
+    catch (...) {
+        cout << "Cannot run rm src/penning/ls_list.txt\n";
+        return;
+    }
+    return;
 }
 
 void system_configuration::read_configuration(std::string file)
@@ -104,6 +127,30 @@ void system_configuration::reset_config()
     vx.clear(); vy.clear(); vz.clear();
     t.clear();
     return;
+}
+
+void system_configuration::create_binary_dir()
+{
+    try {
+        system("mkdir src/penning/binary");
+        return;
+    }
+    catch (...) {
+        cout << "Cannot run 'mkdir src/penning/binary'\n";
+        return;
+    }
+}
+
+void system_configuration::delete_binary_dir()
+{
+    try {
+        system("rm -rf src/penning/binary");
+        return;
+    }
+    catch (...) {
+        cout << "Cannot run 'rm -rf src/penning/binary'\n";
+        return;
+    }
 }
 
 bool system_configuration::is_config_changed()
@@ -1106,61 +1153,55 @@ void system_configuration::get_request()
 void system_configuration::stop()
 {
     clear_cmd;
-
-    /*
-     Переделать
-    */
     std::string name;
     bool found;
-    std::ifstream in("src/penning/saved_configurations.txt");
+
+    try {
+        system("ls src/penning/saved_configurations/ > src/penning/ls_list.txt");
+    }
+    catch (...) {
+        cout << "Cannot run ls src/penning/saved_configurations/ > src/penning/ls_list.txt\n";
+        return;
+    }
+    std::ifstream in("src/penning/ls_list.txt");
     if (!in.good())
     {
         in.close();
-        cout << "Cannot open src/penning/saved_configurations.txt\n";
+        cout << "Cannot open src/penning/ls_list.txt\n";
+        return;
     }
-    while(in)
+
+    while (in)
     {
         std::getline(in, name);
         if (name == "")
             continue;
         found = false;
         for (int i = 0; i < configurations.size(); ++i)
-            found |= (name == configurations[i]);
+            found |= (name == (configurations[i] + ".txt"));
         if (!found)
         {
             try {
-                std::string cmd_s = "rm src/penning/saved_configurations/"+name+".txt";
-                char cmd[cmd_s.size()];
+                std::string cmd_s = "rm src/penning/saved_configurations/"+name;
+                char* cmd = new char[cmd_s.size()];
                 for (int i = 0; i < cmd_s.size(); ++i)
                     cmd[i] = cmd_s[i];
                 system(cmd);
+                delete[] cmd;
             }
             catch (...) {
-                cout << "Cannot run rm src/penning/saved_configurations/"+name+".txt\n";
+                cout << "Cannot run 'rm src/penning/saved_configurations/" << name << "'\n";
             }
         }
     }
-    in.close();
 
-    std::ofstream out("src/penning/saved_configurations.txt");
-    if (!out.good())
-    {
-        out.close();
-        cout << "Cannot open saved_configurations.txt.\nFATAL ERROR\n";
-    }
-    for (int i = 0; i < configurations.size(); ++i)
-    {
-        out << configurations[i] << endl;
-    }
-    out.close();
+    in.close();
     try {
-        std::ofstream fetch("src/penning/binary/fetch.binary", std::ios::binary);
-        fetch.close();
-        system("rm src/penning/binary/*");
-        return;
+        system("rm src/penning/ls_list.txt");
     }
     catch (...) {
-        cout << "Cannot run 'rm src/penning/binary/*'\n";
+        cout << "Cannot run rm src/penning/ls_list.txt\n";
         return;
     }
+    delete_binary_dir();
 }

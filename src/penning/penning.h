@@ -28,6 +28,8 @@ private:
     void read_request_dependencies();
     void read_saved_configurations();
     void read_configuration(std::string);
+    void create_binary_dir();
+    void delete_binary_dir();
     void reset_config();
     bool is_config_changed();
     void print_model();
