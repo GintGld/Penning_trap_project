@@ -4,9 +4,17 @@
 ////////////////////////////////////////
 //       Fundamental Constants        //
 ////////////////////////////////////////
-#define ELEMENTARY_CHARGE 1
-#define ELEMENTARY_MASS  1
+#ifndef SPEED_OF_LIGHT
 #define SPEED_OF_LIGHT 1
+#endif // SPEED_OF_LIGHT
+
+#ifndef ELEMENTARY_CHARGE
+#define ELEMENTARY_CHARGE 1
+#endif // ELEMENTARY_CHARGE
+
+#ifndef ELEMENTARY_MASS
+#define ELEMENTARY_MASS  1
+#endif // ELEMENTARY_MASS
 
 
 ////////////////////////////////////////
