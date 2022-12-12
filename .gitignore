@@ -3,4 +3,6 @@ build/
 Makefile
 .vscode
 *.binary
-matplotplusplus
+*.txt
+!CMakeLists.txt
+!Ex.*.txt

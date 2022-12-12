@@ -17,7 +17,7 @@ private:
     std::vector<std::string> configurations;
 
     bool clear = true, incorrect_input = false, print_ = true, is_out_of_borders = false;
-    std::string current_status, income_command, model_name = "unknown";
+    std::string current_status, income_command, model_name = "undefined";
     double time = 0;
     space<double> model_space = new_space<double>();
     std::vector<double> x, y, z, vx, vy, vz, t;

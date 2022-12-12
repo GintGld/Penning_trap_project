@@ -184,19 +184,25 @@ void system_configuration::count(double time)
         vector3d<double> (model_config["X"], model_config["Y"], model_config["Z"]),
         vector3d<double> (model_config["V_X"], model_config["V_Y"], model_config["V_Z"]),
         abs(model_config["CHARGE"]), model_config["MASS"]));
-    model_space.set_E_field( penning_E(model_config["E_C"], model_config["E_EPS"]));
-    model_space.set_M_field( penning_M(
+    model_space.set_E_field( penning_E<double>(model_config["E_C"], model_config["E_EPS"]));
+    model_space.set_M_field( penning_M<double>(
         vector3d<double>(model_config["M_X"], model_config["M_Y"], model_config["M_Z"])));
 
     model_space.solve(time, .01, "rk45", 10);
-    model_space.write_T("src/penning/output");
+    model_space.write_T("src/penning/binary/"+model_name);
+    model_space.clear();
 
     x.clear(); y.clear(); z.clear();
     vx.clear(); vy.clear(); vz.clear();
     t.clear();
 
     double* r = new double[6];
-    std::ifstream in("src/penning/output.binary", std::ios::binary);
+    std::ifstream in("src/penning/binary/"+model_name+".binary", std::ios::binary);
+    if (!in.good())
+    {
+        cout << "Cannot open src/penning/binaty/"<<model_name<<"\nFATAL ERROR\n";
+        return;
+    }
     for (int i = 0; i <= (unsigned)(time / .01); ++i)
     {
         for (int j = 0; j < 6; ++j)
@@ -227,14 +233,6 @@ void system_configuration::count(double time)
     }
     delete[] r;
     in.close();
-    try {
-        system("rm src/penning/output.binary");
-        return;
-    }
-    catch (...) {
-        cout << "Cannot run rm src/penning/output.binary";
-        return;
-    }
 }
 
 void system_configuration::print()
@@ -453,6 +451,7 @@ void system_configuration::get_request()
             }
             else if (i == configurations.size() + 1)
             {
+                reset_config();
                 current_status = "new_config";
                 return;
             }
@@ -712,9 +711,9 @@ void system_configuration::get_request()
                 r     = std::stod(s1);
                 theta = std::stod(s2);
                 phi   = std::stod(s3);
-                model_config["M_X"] = r * sin(theta * 180 / M_PI) * cos(phi * 180 / M_PI);
-                model_config["M_Y"] = r * sin(theta * 180 / M_PI) * sin(phi * 180 / M_PI);
-                model_config["M_Z"] = r * cos(theta * 180 / M_PI);
+                model_config["M_X"] = r * sin(theta * M_PI / 180) * cos(phi * M_PI / 180);
+                model_config["M_Y"] = r * sin(theta * M_PI / 180) * sin(phi * M_PI / 180);
+                model_config["M_Z"] = r * cos(theta * M_PI / 180);
 
                 current_status = "new_config";
                 return;
@@ -969,20 +968,8 @@ void system_configuration::get_request()
                 if (model_name == configurations[i])
                     idx = i;
             configurations.erase(configurations.begin() + idx);
-            try {
-                std::string cmd_s = "rm src/penning/saved_configurations/"+model_name+".txt";
-                char cmd[cmd_s.size()];
-                for (int i = 0; i < cmd_s.size(); ++i)
-                    cmd[i] = cmd_s[i];
-                system(cmd);
-                current_status = "main_menu";
-                return;
-            }
-            catch (...) {
-                cout << "Cannot run rm src/penning/saved_configurations/"+model_name+".txt\nFATAL ERROR\n";
-                current_status = "pre-launch_window";
-                return;
-            }
+            current_status = "main_menu";
+            return;
         }
         else if (income_command == "n" || income_command == "no" || income_command == "N" || income_command == "No")
         {
@@ -1096,6 +1083,7 @@ void system_configuration::get_request()
         else if (income_command == "menu" || income_command == "Menu")
         {
             reset_config();
+            model_name = "undefined";
             current_status = "main_menu";
             return;
         }
@@ -1119,17 +1107,60 @@ void system_configuration::stop()
 {
     clear_cmd;
 
+    /*
+     Переделать
+    */
+    std::string name;
+    bool found;
+    std::ifstream in("src/penning/saved_configurations.txt");
+    if (!in.good())
+    {
+        in.close();
+        cout << "Cannot open src/penning/saved_configurations.txt\n";
+    }
+    while(in)
+    {
+        std::getline(in, name);
+        if (name == "")
+            continue;
+        found = false;
+        for (int i = 0; i < configurations.size(); ++i)
+            found |= (name == configurations[i]);
+        if (!found)
+        {
+            try {
+                std::string cmd_s = "rm src/penning/saved_configurations/"+name+".txt";
+                char cmd[cmd_s.size()];
+                for (int i = 0; i < cmd_s.size(); ++i)
+                    cmd[i] = cmd_s[i];
+                system(cmd);
+            }
+            catch (...) {
+                cout << "Cannot run rm src/penning/saved_configurations/"+name+".txt\n";
+            }
+        }
+    }
+    in.close();
+
     std::ofstream out("src/penning/saved_configurations.txt");
     if (!out.good())
     {
         out.close();
         cout << "Cannot open saved_configurations.txt.\nFATAL ERROR\n";
-        return;
     }
     for (int i = 0; i < configurations.size(); ++i)
     {
         out << configurations[i] << endl;
     }
     out.close();
-    return;
+    try {
+        std::ofstream fetch("src/penning/binary/fetch.binary", std::ios::binary);
+        fetch.close();
+        system("rm src/penning/binary/*");
+        return;
+    }
+    catch (...) {
+        cout << "Cannot run 'rm src/penning/binary/*'\n";
+        return;
+    }
 }
