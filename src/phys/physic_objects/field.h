@@ -392,23 +392,4 @@ field<T> new_field()
     return new_field<T>(vector3d<T>(0,0,0));
 }
 
-template <typename T>
-field<T> penning_E(T C, T eps)
-{
-    field<T> tmp = new_field<T>();
-    tmp.set_function([C, eps](T t, vector3d<T> r){
-        return C * vector3d<T>(
-            (1 + eps) * r.x(),
-            (1 - eps) * r.y(),
-            -2 * r.z());
-    });
-    return tmp;
-}
-
-template <typename T>
-field<T> penning_M(vector3d<T> B)
-{
-    return new_field(B);
-}
-
 #endif // FIELD_H

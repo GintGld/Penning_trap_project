@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <vector>
 #include <map>
 
 #include "penning.h"
@@ -11,14 +12,6 @@ using std::cin;
 using std::cout;
 using std::endl;
 #define clear_cmd system("clear");
-
-system_configuration::system_configuration()
-{
-    read_saved_configurations();
-    reset_config();
-    create_binary_dir();
-    current_status = "initial_menu";
-}
 
 void execute_penning()
 {
@@ -33,6 +26,33 @@ void execute_penning()
     system_status.stop();
 
     return;
+}
+
+template <typename T>
+field<T> penning_E(T C, T eps)
+{
+    field<T> tmp = new_field<T>();
+    tmp.set_function([C, eps](T t, vector3d<T> r){
+        return C * vector3d<T>(
+            (1 + eps) * r.x(),
+            (1 - eps) * r.y(),
+            -2 * r.z());
+    });
+    return tmp;
+}
+
+template <typename T>
+field<T> penning_M(vector3d<T> B)
+{
+    return new_field(B);
+}
+
+system_configuration::system_configuration()
+{
+    read_saved_configurations();
+    reset_config();
+    create_binary_dir();
+    current_status = "initial_menu";
 }
 
 void system_configuration::read_saved_configurations()
