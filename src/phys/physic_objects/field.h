@@ -282,7 +282,7 @@ field<T> field<T>::operator+=(const field<T> F)
 {
     std::function<vector3d<T>(T, vector3d<T>)> tmp = this->f;
     this->set_function([tmp, F](T t, vector3d<T> r){
-        tmp(r) + F.operator()(t, r);
+        return tmp(t, r) + F.operator()(t, r);
     });
     return *this;
 }
@@ -292,7 +292,7 @@ field<T> field<T>::operator-=(const field<T> F)
 {
     std::function<vector3d<T>(T, vector3d<T>)> tmp = this->f;
     this->set_function([tmp, F](T t, vector3d<T> r){
-        tmp(r) - F.operator()(t, r);
+        return tmp(t, r) - F.operator()(t, r);
     });
     return *this;
 }
@@ -302,7 +302,7 @@ field<T> field<T>::operator^=(const field<T> F)
 {
     std::function<vector3d<T>(T, vector3d<T>)> tmp = this->f;
     this->set_function([tmp, F](T t, vector3d<T> r){
-        tmp(r) ^ F.operator()(t, r);
+        return tmp(t, r) ^ F.operator()(t, r);
     });
     return *this;
 }
@@ -312,7 +312,7 @@ field<T> field<T>::operator*=(const T mult)
 {
     std::function<vector3d<T>(T, vector3d<T>)> tmp = this->f;
     this->set_function([tmp, mult](T t, vector3d<T> r){
-        tmp(t, r) * mult;
+        return tmp(t, r) * mult;
     });
     return *this;
 }
@@ -322,7 +322,7 @@ field<T> field<T>::operator/=(const T mult)
 {
     std::function<vector3d<T>(T, vector3d<T>)> tmp = this->f;
     this->set_function([tmp, mult](T t, vector3d<T> r){
-        tmp(t, r) / mult;
+        return tmp(t, r) / mult;
     });
     return *this;
 }
