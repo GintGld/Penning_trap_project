@@ -13,3 +13,4 @@ Makefile
 !static_field1.txt
 !static_field2.txt
 !no_field.txt
+!strange_config.txt

@@ -1,0 +1,16 @@
+CHARGE : 1
+MASS : 1
+FREQ_Z : 100
+ELL : 1
+AMPL : 0
+FREQ_R : 0
+M_X : 10
+M_Y : 10
+M_Z : 500
+SIZE : 100
+X : 1
+Y : 0
+Z : 0
+V_X : 2
+V_Y : 2
+V_Z : 1
