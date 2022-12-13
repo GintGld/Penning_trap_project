@@ -950,7 +950,6 @@ void system_configuration::get_request()
         else
         {
             try {
-                double x, y, z;
                 std::string s1, s2, s3;
                 int i = 0;
                 while (income_command[i] != ' ' && i < income_command.size())
@@ -963,18 +962,10 @@ void system_configuration::get_request()
                 s1 = income_command.substr(0, i + 1);
                 s2 = income_command.substr(i + 2, j - i - 1);
                 s3 = income_command.substr(j + 2, income_command.size() - j - 1);
-                x = std::stod(s1);
-                y = std::stod(s2);
-                z = std::stod(s3);
-                if (sqrt(x*x + y*y + z*z) >= SPEED_OF_LIGHT)
-                {
-                    clear = false;
-                    incorrect_input = true;
-                    return;
-                }
-                model_config["V_X"] = x;
-                model_config["V_Y"] = y;
-                model_config["V_Z"] = z;
+                
+                model_config["V_X"] = std::stod(s1);
+                model_config["V_Y"] = std::stod(s2);
+                model_config["V_Z"] = std::stod(s3);
 
                 current_status = "new_config";
                 return;
