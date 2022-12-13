@@ -275,10 +275,9 @@ void system_configuration::count(double time)
     model_space.set_M_field( penning_M<double>(
         vector3d<double>(model_config["M_X"], model_config["M_Y"], model_config["M_Z"])));
 
-    //if (model_config["AMPL"] == 0 && model_config["FREQ_R"] == 0)
-        n_repeat = (unsigned)(1000 * time_step);
-    //else
-    //    n_repeat = (unsigned)(50 * time * time_step);
+    n_repeat = (unsigned)(1000 * time_step);
+    if (n_repeat == 0)
+        ++n_repeat;
 
     model_space.solve(time, time_step, "rk45", n_repeat);
     model_space.write_T("src/penning/binary/"+model_name);
