@@ -5,4 +5,11 @@ Makefile
 *.binary
 *.txt
 !CMakeLists.txt
-!Ex.*.txt
+!crossed_border.txt
+!rotating_field.txt
+!simple_rotation.txt
+!static_rotation.txt
+!spiral_rotation.txt
+!static_field1.txt
+!static_field2.txt
+!no_field.txt
