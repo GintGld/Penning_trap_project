@@ -28,8 +28,10 @@ void execute_penning()
     return;
 }
 
+// Электричесокое поле
+
 template <typename T>
-field<T> penning_E(T wz, T eps, T A, T wr, particle<T> p)
+field<T> penning_E(T wz, T eps, T A, T wr, particle<T> p) 
 {
     field<T> tmp = new_field<T>();
     if (wz != 0)
@@ -57,12 +59,14 @@ field<T> penning_E(T wz, T eps, T A, T wr, particle<T> p)
     return tmp;
 }
 
+// Магнитное поле
+
 template <typename T>
 field<T> penning_M(vector3d<T> B)
 {
     return new_field(B);
 }
-
+ 
 system_configuration::system_configuration()
 {
     read_saved_configurations();
@@ -71,7 +75,7 @@ system_configuration::system_configuration()
     current_status = "initial_menu";
 }
 
-void system_configuration::read_saved_configurations()
+void system_configuration::read_saved_configurations() // Загружает все файлы .txt из дирректории
 {
     std::string name;
     try {
@@ -141,7 +145,7 @@ void system_configuration::read_configuration(std::string file)
     return;
 }
 
-void system_configuration::reset_config()
+void system_configuration::reset_config() // Сброс настроек к настройкам по умолчанию
 {
     model_config["CHARGE"] = 1;
     model_config["MASS"] = 1;
@@ -188,7 +192,7 @@ void system_configuration::delete_binary_dir()
     }
 }
 
-bool system_configuration::is_config_changed()
+bool system_configuration::is_config_changed() // Проверка на наличие изменений конфигурации
 {
     bool f = false;
     f |= (model_config["CHARGE"] != 1);
@@ -210,7 +214,7 @@ bool system_configuration::is_config_changed()
     return f;
 }
 
-void system_configuration::print_model()
+void system_configuration::print_model() // Вывод информации о модели в терминал
 {
     cout.precision(3);
     cout << "----------------------------------" << endl <<
@@ -238,15 +242,15 @@ void system_configuration::print_model()
     return;
 }
 
-void system_configuration::save_model(std::ofstream& out)
+void system_configuration::save_model(std::ofstream& out) // Сохранение новых параметров в .txt
 {
     out <<
         "CHARGE : "   << model_config["CHARGE"] << endl << 
         "MASS : "     << model_config["MASS"] << endl << 
-        "FREQ_Z : "      << model_config["FREQ_Z"] << endl << 
-        "ELL : "    << model_config["ELL"] << endl << 
-        "AMPL : " << model_config["AMPL"] << endl << 
-        "FREQ_R : " << model_config["FREQ_R"] << endl << 
+        "FREQ_Z : "   << model_config["FREQ_Z"] << endl << 
+        "ELL : "      << model_config["ELL"] << endl << 
+        "AMPL : "     << model_config["AMPL"] << endl << 
+        "FREQ_R : "   << model_config["FREQ_R"] << endl << 
         "M_X : "      << model_config["M_X"] << endl << 
         "M_Y : "      << model_config["M_Y"] << endl << 
         "M_Z : "      << model_config["M_Z"] << endl << 
@@ -260,7 +264,7 @@ void system_configuration::save_model(std::ofstream& out)
     return;
 }
 
-void system_configuration::count(double time)
+void system_configuration::count(double time) // Сборка и рассчет модели
 {
     model_space.set_particle( new_particle<double>(
         vector3d<double> (model_config["X"], model_config["Y"], model_config["Z"]),
@@ -323,7 +327,7 @@ void system_configuration::count(double time)
     return;
 }
 
-void system_configuration::print()
+void system_configuration::print() // Внешний вид ользовательского интерфейса
 {
     if (!print_)
     {
@@ -338,12 +342,12 @@ void system_configuration::print()
     {
         cout << "Incorret input, please, try again\n";
     }
-    else if (current_status == "initial_menu")
+    else if (current_status == "initial_menu") // Начальное меню
     {
         cout << "1) Start\n" <<
                 "2) Exit\n";
     }
-    else if (current_status == "main_menu")
+    else if (current_status == "main_menu") // Окно выбора конфигурации
     {
         cout << "Choose configuration:\n\n";
 
@@ -354,7 +358,7 @@ void system_configuration::print()
         cout << configurations.size() + 1 << ") New configuration ...\n" <<
                 configurations.size() + 2 << ") Exit\n";
     }
-    else if (current_status == "new_config")
+    else if (current_status == "new_config") // Окно создания новой конфигурации
     {
         cout << "Variables:" << endl;
         print_model();
@@ -366,7 +370,7 @@ void system_configuration::print()
                 "5) Save\n" <<
                 "6) Exit\n";
     }
-    else if (current_status == "new_config->particle")
+    else if (current_status == "new_config->particle") // Параметров частицы
     {
         cout << "Variables:" << endl;
         print_model();
@@ -378,7 +382,7 @@ void system_configuration::print()
                 "-- charge <value>\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->E_field")
+    else if (current_status == "new_config->E_field") // Параметры эл. поля
     {
         cout << "Variables:" << endl;
         print_model();
@@ -389,7 +393,7 @@ void system_configuration::print()
                 "-- wr <value> (must be > 0)\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->M_field")
+    else if (current_status == "new_config->M_field") // Параметры магн. поля 
     {
         cout << "Variables:" << endl;
         print_model();
@@ -398,7 +402,7 @@ void system_configuration::print()
                 "2) spherical\n" <<
                 "3) exit\n";
     }
-    else if (current_status == "new_config->M_field->cartesian")
+    else if (current_status == "new_config->M_field->cartesian") // Декартовы координаты
     {
         cout << "Variables:" << endl;
         print_model();
@@ -406,7 +410,7 @@ void system_configuration::print()
                 "-- <M_x> <M_y> <M_z>\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->M_field->spherical")
+    else if (current_status == "new_config->M_field->spherical") // Сферические координаты
     {
         cout << "Variables:" << endl;
         print_model();
@@ -415,7 +419,7 @@ void system_configuration::print()
                 "-- (angles are in degrees)\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->geometry")
+    else if (current_status == "new_config->geometry") // Геометрия системы
     {
         cout << "Variables:" << endl;
         print_model();
@@ -425,7 +429,7 @@ void system_configuration::print()
                 "3) velocity (vel)\n" <<
                 "4) exit\n";
     }
-    else if (current_status == "new_config->geometry->size")
+    else if (current_status == "new_config->geometry->size") // Размер ловышки
     {
         cout << "Variables:" << endl;
         print_model();
@@ -433,7 +437,7 @@ void system_configuration::print()
                 "-- <value>\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->geometry->coordinate")
+    else if (current_status == "new_config->geometry->coordinate") // Начальные координафты частицы
     {
         cout << "Variables:" << endl;
         print_model();
@@ -441,7 +445,7 @@ void system_configuration::print()
                 "-- <X> <Y> <Z>\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->geometry->velocity")
+    else if (current_status == "new_config->geometry->velocity") // Начальная скорость частицы
     {
         cout << "Variables:" << endl;
         print_model();
@@ -449,26 +453,26 @@ void system_configuration::print()
                 "-- <V_x> <V_y> <V_z>\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "new_config->save")
+    else if (current_status == "new_config->save") // Вывод новых параметров для сохранения
     {
         cout << "Variables:" << endl;
         print_model();
         cout << "Write the name\n";
     }
-    else if (current_status == "new_config->save->rewrite")
+    else if (current_status == "new_config->save->rewrite") // Проверка на наличие файла с этим названием
     {
         cout << "Variables:" << endl;
         print_model();
         cout << "File with this name is already exist.\n" <<
                 "Do you want to rewrite? [y/n]\n";
     }
-    else if (current_status == "new_config->exit")
+    else if (current_status == "new_config->exit") // Выход без сохранения
     {
         cout << "Variables:" << endl;
         print_model();
         cout << "Are you sure you want to exit and reset configuration? [y/n]\n";
     }
-    else if (current_status == "pre-launch_window")
+    else if (current_status == "pre-launch_window") // Окно перед началом обсчитыванием
     {
         cout << "Configuration: " << model_name << endl;
         print_model();
@@ -480,11 +484,11 @@ void system_configuration::print()
                 "-- del\n" <<
                 "-- exit\n";
     }
-    else if (current_status == "pre-launch_window->delete")
+    else if (current_status == "pre-launch_window->delete") // Удаление
     {
         cout << "Are you sure you want to delete this configuration? [y/n]\n";
     }
-    else if (current_status == "model")
+    else if (current_status == "model") // Проверка на вылет за переделы ловушки и выбор графиков
     {
         cout << model_name << " was successfully modeled\n";
         if (is_out_of_borders)
@@ -503,7 +507,7 @@ void system_configuration::print()
     return;
 }
 
-void system_configuration::get_request()
+void system_configuration::get_request() // Сборка
 {
     std::getline(cin, income_command);
 
@@ -1245,7 +1249,7 @@ void system_configuration::get_request()
     }
 }
 
-void system_configuration::stop()
+void system_configuration::stop() // Ошибки
 {
     clear_cmd;
     std::string name;
