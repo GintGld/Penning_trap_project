@@ -75,7 +75,7 @@ system_configuration::system_configuration()
     current_status = "initial_menu";
 }
 
-void system_configuration::read_saved_configurations() // Загружает все файлы .txt из дирректории
+void system_configuration::read_saved_configurations() // Загружает все файлы .txt из директории
 {
     std::string name;
     try {
@@ -115,7 +115,7 @@ void system_configuration::read_saved_configurations() // Загружает в�
     return;
 }
 
-void system_configuration::read_configuration(std::string file)
+void system_configuration::read_configuration(std::string& file)
 {
     std::ifstream in("src/penning/saved_configurations/"+file+".txt");
     if (!in.good())
@@ -327,16 +327,16 @@ void system_configuration::count(double time) // Сборка и рассчет 
     return;
 }
 
-void system_configuration::print() // Внешний вид ользовательского интерфейса
+void system_configuration::print() // Внешний вид пользовательского интерфейса
 {
+    if (clear)
+    {
+        clear_cmd;
+    }
     if (!print_)
     {
         cout << "penning> ";
         return;
-    }
-    if (clear)
-    {
-        clear_cmd;
     }
     if (incorrect_input)
     {

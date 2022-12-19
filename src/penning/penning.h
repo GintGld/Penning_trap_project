@@ -27,7 +27,7 @@ private:
     void count(double);
     void read_request_dependencies();
     void read_saved_configurations();
-    void read_configuration(std::string);
+    void read_configuration(std::string&);
     void create_binary_dir();
     void delete_binary_dir();
     void reset_config();
