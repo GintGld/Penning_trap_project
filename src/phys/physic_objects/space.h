@@ -24,11 +24,11 @@ private:
     particle<T> P;
     narray<narray<vector3d<T> > > history;
     
-    // Private Constructors
+public:
+    // Constructors
     space(particle<T>, field<T>, field<T>);
     space();
 
-public:
     // Methods
     particle<T> get_particle() const;
     field<T>    get_E_field() const;

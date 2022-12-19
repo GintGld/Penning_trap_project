@@ -19,7 +19,7 @@ private:
     bool clear = true, incorrect_input = false, print_ = true, is_out_of_borders = false;
     std::string current_status, income_command, model_name = "undefined";
     double time = 0, time_step, n_repeat;
-    space<double> model_space = new_space<double>();
+    space<double> model_space;
     std::vector<double> x, y, z, vx, vy, vz, t;
 
     system_configuration();
